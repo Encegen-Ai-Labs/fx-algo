@@ -51,7 +51,7 @@ export default function ProductDetail() {
   if (!product) return <div className="text-center py-20">Product not found</div>;
 
   const imageUrl = product?.image
-    ? `${import.meta.env.VITE_API_URL || "http://127.0.0.1:5000"}${product.image}`
+    ? `${import.meta.env.VITE_PUBLIC_BASE_URL || ""}${product.image}`
     : "/p1.png";
 
   return (

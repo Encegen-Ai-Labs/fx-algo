@@ -208,7 +208,7 @@ export default function AdminProducts() {
                     </button>
 
                     <img
-                      src={`${import.meta.env.VITE_API_URL || "http://127.0.0.1:5000"}${p.image}`}
+                      src={`${import.meta.env.VITE_PUBLIC_BASE_URL|| ""}${p.image}`}
                       alt={p.title}
                       className="h-40 mx-auto object-contain"
                     />

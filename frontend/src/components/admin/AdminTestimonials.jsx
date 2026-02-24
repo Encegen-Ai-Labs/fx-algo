@@ -3,7 +3,6 @@ import api from "../../api/axios";
 import AdminNavbar from "./AdminNavbar";
 
 export default function AdminTestimonials() {
-
   const [list, setList] = useState([]);
   const [form, setForm] = useState({
     name: "",
@@ -14,28 +13,31 @@ export default function AdminTestimonials() {
   });
   const [video, setVideo] = useState(null);
 
+  // LOAD LIST
   const load = () => {
-    api.get("/api/testimonials/")
+    api.get("/testimonials/")
       .then(res => setList(res.data));
   };
 
   useEffect(load, []);
 
+  // SUBMIT NEW TESTIMONIAL
   const submit = async () => {
     const fd = new FormData();
 
     Object.keys(form).forEach(k => fd.append(k, form[k]));
-    fd.append("video", video);
+    if (video) fd.append("video", video);
 
-    await api.post("/api/testimonials/", fd);
+    await api.post("/testimonials/", fd);
     alert("Added!");
     load();
   };
 
+  // DELETE
   const remove = async (id) => {
     if (!window.confirm("Delete this testimonial?")) return;
 
-    await api.delete(`/api/testimonials/${id}`);
+    await api.delete(`/testimonials/${id}`);
     load();
   };
 
@@ -44,7 +46,6 @@ export default function AdminTestimonials() {
       <AdminNavbar />
 
       <div className="p-10 text-white bg-[#0a0614] min-h-screen">
-
         <h1 className="text-3xl mb-8">Testimonials Manager</h1>
 
         {/* ADD FORM */}
@@ -56,7 +57,7 @@ export default function AdminTestimonials() {
               key={key}
               placeholder={key}
               className="block w-full p-3 mb-3 bg-[#0f0b2a]"
-              onChange={(e)=>setForm({...form,[key]:e.target.value})}
+              onChange={(e)=>setForm({...form, [key]: e.target.value})}
             />
           ))}
 
@@ -80,7 +81,7 @@ export default function AdminTestimonials() {
           {list.map(t => (
             <div key={t.id} className="bg-[#1a1033] p-4 rounded-xl">
               <video
-                src={`http://127.0.0.1:5000${t.video}`}
+                src={t.video}   // ← FIXED! no localhost
                 controls
                 className="w-full h-48 object-cover mb-3"
               />
@@ -96,7 +97,6 @@ export default function AdminTestimonials() {
             </div>
           ))}
         </div>
-
       </div>
     </>
   );

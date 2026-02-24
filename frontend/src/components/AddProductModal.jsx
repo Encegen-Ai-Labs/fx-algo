@@ -16,11 +16,11 @@ export default function AddProductModal({ onClose, onAdded }) {
     Object.keys(form).forEach((k) => fd.append(k, form[k]));
     if (image) fd.append("image", image);
 
-    const res = await fetch("http://127.0.0.1:5000/api/products", {
-      method: "POST",
-      headers: authHeader(),
-      body: fd,
-    });
+  const res = await fetch("/api/products/", {
+  method: "POST",
+  headers: authHeader(),
+  body: fd,
+});
 
     if (res.ok) {
       onAdded();

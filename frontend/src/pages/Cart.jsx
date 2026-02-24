@@ -42,7 +42,7 @@ export default function Cart() {
             {cart.map((item) => {
 
               const imageUrl = item.image
-                ? `${import.meta.env.VITE_API_URL || "http://127.0.0.1:5000"}${item.image}`
+                ? `${import.meta.env.VITE_PUBLIC_BASE_URL  || ""}${item.image}`
                 : "/p1.png";
 
               return (

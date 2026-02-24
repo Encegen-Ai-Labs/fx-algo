@@ -7,7 +7,7 @@ export default function AdminOrders() {
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    fetch("http://localhost:5000/api/orders", {
+    fetch("/api/orders/", {
       headers: {
         Authorization: `Bearer ${token}`,
       },

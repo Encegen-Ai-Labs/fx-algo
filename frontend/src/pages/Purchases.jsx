@@ -40,11 +40,11 @@ export default function Purchases() {
           {licenses.map((license) => {
 
             const imageUrl = license.product?.image
-              ? `${import.meta.env.VITE_API_URL || "http://127.0.0.1:5000"}${license.product.image}`
+              ? `${import.meta.env.VITE_PUBLIC_BASE_URL || ""}${license.product.image}`
               : "/p1.png";
 
             const downloadUrl = license.product?.file_url
-              ? `${import.meta.env.VITE_API_URL || "http://127.0.0.1:5000"}${license.product.file_url}`
+              ? `${import.meta.env.VITE_PUBLIC_BASE_URL || ""}${license.product.file_url}`
               : null;
 
             return (
