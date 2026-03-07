@@ -165,11 +165,11 @@ export default function AdminOrders() {
 
                     {o.payment_proof ? (
                       <img
-                        src={`http://127.0.0.1:5000/${o.payment_proof}`}
+                        src={`${window.location.origin}/${o.payment_proof}`}
                         className="w-20 mx-auto rounded cursor-pointer hover:scale-110 transition"
                         alt="payment proof"
                         onClick={() =>
-                          setPreview(`http://127.0.0.1:5000/${o.payment_proof}`)
+                          setPreview(`${window.location.origin}/${o.payment_proof}`)
                         }
                       />
                     ) : (

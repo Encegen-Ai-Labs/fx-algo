@@ -106,7 +106,7 @@ export default function Purchases() {
                   : "/p1.png";
 
                 const downloadUrl = license.product?.file_url
-                  ? `${import.meta.env.VITE_PUBLIC_BASE_URL || ""}${license.product.file_url}`
+                  ? `${window.location.origin}${license.product.file_url}`
                   : null;
 
                 return (

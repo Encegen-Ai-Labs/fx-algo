@@ -22,7 +22,7 @@ export default function OrderDetails() {
   }
 
   const imageUrl = order.product?.image
-    ? `${import.meta.env.VITE_PUBLIC_BASE_URL || ""}${order.product.image}`
+    ? `${window.location.origin}${order.product.image}`
     : "/p1.png";
 
   return (

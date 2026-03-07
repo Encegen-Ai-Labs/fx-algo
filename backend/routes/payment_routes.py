@@ -9,7 +9,7 @@ from models.product import Product
 from utils.telegram import send_admin_alert
 
 
-order_bp = Blueprint("orders", __name__)
+order_bp = Blueprint("payments", __name__)
 
 
 # ---------------- GET SINGLE ORDER ----------------

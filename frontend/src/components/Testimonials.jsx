@@ -80,7 +80,7 @@ export default function Testimonials() {
 
 function VideoCard({ item }) {
 
-   const videoUrl = `http://127.0.0.1:5000${item.video.replace("\\","/")}`;
+ const videoUrl = `${window.location.origin}${item.video.replace("\\","/")}`;
 
   return (
     <div className="min-w-[320px] bg-[#0f0b2a] rounded-2xl overflow-hidden shadow-lg border border-white/10">

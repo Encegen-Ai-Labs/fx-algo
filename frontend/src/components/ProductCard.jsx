@@ -21,7 +21,7 @@ export default function ProductCard({ product }) {
   };
 
   const imageUrl = product?.image
-  ? `${import.meta.env.VITE_PUBLIC_BASE_URL}${product.image}`
+  ? `${window.location.origin}${product.image}`
   : "/p1.png";
 
   return (
