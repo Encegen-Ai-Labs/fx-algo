@@ -2,12 +2,13 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { FaShoppingCart } from "react-icons/fa";
-
+import { useState } from "react";
 
 
 export default function Hero() {
   const navigate = useNavigate();
   const { isLoggedIn, isAdmin, logout } = useAuth();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
     <motion.section
@@ -120,9 +121,113 @@ export default function Hero() {
         </div>
 
         {/* MOBILE MENU */}
-        <div className="md:hidden text-2xl cursor-pointer">
-          ☰
-        </div>
+       {/* MOBILE MENU BUTTON */}
+<div
+  className="md:hidden text-2xl cursor-pointer"
+  onClick={() => setMobileOpen(!mobileOpen)}
+>
+  ☰
+</div>
+
+{/* MOBILE MENU DROPDOWN */}
+{mobileOpen && (
+  <div className="md:hidden absolute top-20 left-0 w-full bg-[#0a0614] text-white flex flex-col items-center gap-6 py-8 text-lg font-medium shadow-lg z-50">
+
+    {!isLoggedIn && (
+      <>
+        <button
+          onClick={() => {
+            navigate("/login");
+            setMobileOpen(false);
+          }}
+          className="hover:text-yellow-400 transition"
+        >
+          Login
+        </button>
+
+        <button
+          onClick={() => {
+            navigate("/register");
+            setMobileOpen(false);
+          }}
+          className="hover:text-yellow-400 transition"
+        >
+          Register
+        </button>
+
+        <button
+          onClick={() => {
+            navigate("/cart");
+            setMobileOpen(false);
+          }}
+          className="hover:text-yellow-400 transition"
+        >
+          Cart
+        </button>
+      </>
+    )}
+
+    {isLoggedIn && !isAdmin && (
+      <>
+        <button
+          onClick={() => {
+            navigate("/purchases");
+            setMobileOpen(false);
+          }}
+          className="hover:text-yellow-400 transition"
+        >
+          My Purchases
+        </button>
+
+        <button
+          onClick={() => {
+            navigate("/cart");
+            setMobileOpen(false);
+          }}
+          className="hover:text-yellow-400 transition"
+        >
+          Cart
+        </button>
+
+        <button
+          onClick={() => {
+            logout();
+            navigate("/");
+            setMobileOpen(false);
+          }}
+          className="hover:text-red-400 transition"
+        >
+          Logout
+        </button>
+      </>
+    )}
+
+    {isLoggedIn && isAdmin && (
+      <>
+        <button
+          onClick={() => {
+            navigate("/admin/dashboard");
+            setMobileOpen(false);
+          }}
+          className="hover:text-purple-400 transition"
+        >
+          Admin Panel
+        </button>
+
+        <button
+          onClick={() => {
+            logout();
+            navigate("/");
+            setMobileOpen(false);
+          }}
+          className="hover:text-red-400 transition"
+        >
+          Logout
+        </button>
+      </>
+    )}
+  </div>
+)}
       </motion.div>
 
       {/* ================= HERO CONTENT (FIXED LEFT ALIGN) ================= */}
@@ -169,7 +274,7 @@ export default function Hero() {
           </div>
 
           <motion.p className="text-white text-base md:text-lg max-w-xl text-left">
-            Design For Consistency, Not Promises
+            Designed For Consistency, Not Promises
           </motion.p>
 
         </div>

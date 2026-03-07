@@ -127,7 +127,7 @@ export default function ProductDetail() {
               bg-gradient-to-r from-yellow-400 to-orange-500
               text-black hover:scale-105 transition"
             >
-              ADD TO CART
+              Buy Now
             </button>
           </div>
 

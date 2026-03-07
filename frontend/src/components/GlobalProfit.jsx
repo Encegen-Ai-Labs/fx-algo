@@ -21,7 +21,7 @@ export default function GlobalProfit() {
 
         {/* TEXT */}
         <h1 className="global-amount">$31+ Million</h1>
-        <p className="global-sub">Benefit made by Robot Globally</p>
+        <p className="global-sub">Profits Made By Robots Globally</p>
 
         {/* GLOW TRIANGLE */}
         <div className="glow-triangle"></div>

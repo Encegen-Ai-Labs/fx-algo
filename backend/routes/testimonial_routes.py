@@ -25,7 +25,7 @@ def get_testimonials():
             "flag": t.flag,
             "reward": t.reward,
             "role": t.role,
-            "video": f"/{t.video}"
+            "video": "/" + t.video.replace("\\", "/")
         })
 
     return jsonify(data)
@@ -44,6 +44,8 @@ def add_testimonial():
     filename = secure_filename(file.filename)
     path = os.path.join(UPLOAD_FOLDER, filename)
     file.save(path)
+    
+    video_path = f"uploads/videos/{filename}"
 
     t = Testimonial(
         name=request.form.get("name"),
@@ -82,7 +84,7 @@ def update_testimonial(id):
         filename = secure_filename(file.filename)
         path = os.path.join(UPLOAD_FOLDER, filename)
         file.save(path)
-        t.video = path
+        t.video = f"uploads/videos/{filename}"
 
     db.session.commit()
     return jsonify({"message": "Updated"})

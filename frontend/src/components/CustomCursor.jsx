@@ -29,7 +29,7 @@ const CustomCursor = () => {
       this.limit = DOT_WIDTH * 0.75 * this.scale;
       this.element = document.createElement("span");
       this.element.className = "CursorDot";
-      this.element.style.background = "#f1d60d";
+      this.element.style.background = "#f1b00d";
       this.element.style.position = "absolute";
       this.element.style.width = "26px";
       this.element.style.height = "26px";

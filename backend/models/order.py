@@ -29,4 +29,10 @@ class Order(db.Model):
     razorpay_payment_id = db.Column(db.String(200))
     razorpay_signature = db.Column(db.String(200))
 
+    # manual payment  ✅ INSIDE CLASS
+    payment_proof = db.Column(db.String(255))
+    payment_status = db.Column(db.String(30), default="unpaid")
+    verified_at = db.Column(db.DateTime)
+    verified_by = db.Column(db.Integer)
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

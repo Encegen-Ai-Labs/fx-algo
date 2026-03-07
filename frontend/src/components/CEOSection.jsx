@@ -29,9 +29,9 @@ export default function CEOSection() {
             results.
           </p>
 
-          <button className="read-btn">
+          {/* <button className="read-btn">
             Read more <span>➜</span>
-          </button>
+          </button> */}
         </div>
 
         {/* RIGHT SIDE BOX */}

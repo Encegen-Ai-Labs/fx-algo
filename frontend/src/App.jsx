@@ -42,9 +42,10 @@ import AdminSettings from "./components/admin/AdminSettings";
 import AdminTestimonials from "./components/admin/AdminTestimonials";
 import AdminUsers from "./components/admin/AdminUsers";
 import AdminUserDetail from "./components/admin/AdminUserDetail";
-
-
-
+import ManualPayment from "./pages/ManualPayment";
+import OrderDetails from "./pages/OrderDetails";
+import CryptoPayment from "./pages/CryptoPayment";
+import BankTransfer from "./pages/BankTransfer";
 
 /* HOME */
 function Home() {
@@ -57,7 +58,7 @@ function Home() {
       <Reviews />
       <GlobalProfit />
       <Brokers />
-       <CustomCursor />
+      <CustomCursor />
       <NextLevel />
       <CEOSection/>
       <Terms />
@@ -98,9 +99,11 @@ function AppRoutes() {
         {/* PUBLIC */}
         <Route path="/" element={<Home />} />
         <Route path="/product/:id" element={<ProductDetail />} />
-
-<Route path="/products" element={<Products />} />
-<Route path="/about" element={<About />} />
+        <Route path="/orders/:id" element={<OrderDetails />} />
+        <Route path="/crypto-payment/:orderId" element={<CryptoPayment />} />
+        <Route path="/bank-transfer/:orderId" element={<BankTransfer />} />
+        <Route path="/products" element={<Products />} />
+        <Route path="/about" element={<About />} />
 
         {/* AUTH */}
         <Route path="/login" element={<Login />} />
@@ -124,7 +127,14 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
-
+<Route
+  path="/manual-payment/:orderId"
+  element={
+    <ProtectedRoute>
+      <ManualPayment />
+    </ProtectedRoute>
+  }
+/>
         <Route
           path="/purchases"
           element={

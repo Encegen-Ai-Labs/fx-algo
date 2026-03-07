@@ -13,13 +13,25 @@ const About = () => {
       {/* HERO SECTION */}
       <div className="hero-container">
 
-        <div className="hero-image">
-          <div className="breadcrumb">
-  <Link to="/" className="crumb-link">Home</Link>
-  <span className="crumb-separator"> / </span>
-  <span className="crumb-current">About</span>
+        <div className="hero-image relative flex items-center justify-center h-64 md:h-80">
+  
+  {/* Breadcrumb */}
+  <div className="breadcrumb absolute bottom-6 left-10 text-white text-sm md:text-base">
+    <Link 
+      to="/" 
+      className="crumb-link hover:text-yellow-400 transition duration-300"
+    >
+      Home
+    </Link>
+
+    <span className="crumb-separator mx-2 text-white/70">/</span>
+
+    <span className="crumb-current text-yellow-400 font-medium">
+      About
+    </span>
+  </div>
+
 </div>
-        </div>
 
         <div className="hero-band">
           <h3>FX ALGO</h3>

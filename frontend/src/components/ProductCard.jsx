@@ -8,6 +8,7 @@ export default function ProductCard({ product }) {
   const { addToCart } = useCart();
   const { isLoggedIn } = useAuth();
 
+  
   const handleAdd = (e) => {
     e.stopPropagation();
 
@@ -20,8 +21,8 @@ export default function ProductCard({ product }) {
   };
 
   const imageUrl = product?.image
-    ? `${import.meta.env.VITE_PUBLIC_BASE_URL || ""}${product.image}`
-    : "/p1.png";
+  ? `${import.meta.env.VITE_PUBLIC_BASE_URL}${product.image}`
+  : "/p1.png";
 
   return (
     <div

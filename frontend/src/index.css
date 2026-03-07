@@ -22,3 +22,39 @@ body {
   letter-spacing: 2px;
 
 }
+
+/* PHONE INPUT DARK THEME FIX */
+
+.react-tel-input .form-control {
+  background-color: #0e061a !important;
+  color: white !important;
+  border: 1px solid rgba(255,255,255,0.4) !important;
+}
+
+.react-tel-input .flag-dropdown {
+  background-color: #0e061a !important;
+  border: 1px solid rgba(255,255,255,0.4) !important;
+}
+
+.react-tel-input .selected-flag {
+  background-color: #0e061a !important;
+}
+
+.react-tel-input .country-list {
+  background-color: #12061f !important;
+  color: white !important;
+}
+
+.react-tel-input .country-list .country {
+  color: white !important;
+  padding: 10px !important;
+}
+
+.react-tel-input .country-list .country:hover {
+  background-color: #1a0c2e !important;
+}
+
+.react-tel-input .country-list .country.highlight {
+  background-color: #facc15 !important;
+  color: black !important;
+}

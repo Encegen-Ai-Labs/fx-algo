@@ -22,7 +22,7 @@ export default function AddProductForm({ onSubmit }) {
       galleryImages,
     };
 
-    // API call yahan kar sakte ho
+   
     console.log("PRODUCT DATA 👉", productData);
 
     onSubmit && onSubmit(productData);

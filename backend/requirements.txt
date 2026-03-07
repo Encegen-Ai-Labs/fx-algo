@@ -9,6 +9,7 @@ Flask-JWT-Extended==4.6.0
 Flask-SQLAlchemy==3.1.1
 greenlet==3.3.2
 gunicorn==22.0.0
+
 idna==3.11
 itsdangerous==2.2.0
 Jinja2==3.1.6
@@ -25,3 +26,6 @@ urllib3==2.6.3
 waitress==3.0.2
 Werkzeug==3.0.3
 wheel==0.46.3
+
+google-auth
+

@@ -8,7 +8,7 @@ export default function Terms() {
         <div className="w-full h-[450px]">
           <iframe
             title="map"
-            src="https://www.google.com/maps?q=Pune,India&output=embed"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d52349.16372153237!2d33.576344959632266!3d34.910897844325035!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14e082a16c40cb13%3A0x4fcbf0221371d0a5!2sLarnaca%2C%20Cyprus!5e0!3m2!1sen!2sin!4v1772644752128!5m2!1sen!2sin"
             className="w-full h-full"
             loading="lazy"
           ></iframe>
@@ -39,17 +39,17 @@ export default function Terms() {
 
             <div>
               <p className="text-gray-400">Email</p>
-              <p className="text-white">hello@algotrading.com.au</p>
+              <p className="text-white">fxalgofficial@gmail.com</p>
             </div>
 
             <div>
               <p className="text-gray-400">Call us</p>
-              <p className="text-white">98454656515</p>
+              <p className="text-white">9373245172</p>
             </div>
 
             <div>
-              <p className="text-gray-400">Text</p>
-              <p className="text-white">98454656515</p>
+              <p className="text-gray-400">Whatsapp</p>
+              <p className="text-white">9764221152</p>
             </div>
 
           </div>
@@ -58,12 +58,12 @@ export default function Terms() {
       </div>
 
       {/* BOTTOM STRIP */}
-      <div className="bg-gradient-to-r from-purple-900 via-black to-cyan-900 text-gray-400 text-xs py-4 text-center border-t border-white/10">
-        © 2026 Algo Trading &nbsp; | &nbsp;
-        <span className="hover:text-white cursor-pointer">Terms and conditions</span>
-        &nbsp; • &nbsp;
-        <span className="hover:text-white cursor-pointer">Privacy policy</span>
-      </div>
+     <div className="bg-gradient-to-r from-purple-900 via-black to-cyan-900 text-gray-400 text-xs py-4 text-center border-t border-white/10">
+  © 2026 Developed by Encegen AI Labs Pvt Ltd &nbsp; | &nbsp;
+  <span className="hover:text-white cursor-pointer">Terms and Conditions</span>
+  &nbsp; • &nbsp;
+  <span className="hover:text-white cursor-pointer">Privacy Policy</span>
+</div>
 
     </section>
   );
