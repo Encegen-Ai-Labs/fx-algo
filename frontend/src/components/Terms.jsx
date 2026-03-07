@@ -59,7 +59,7 @@ export default function Terms() {
 
       {/* BOTTOM STRIP */}
      <div className="bg-gradient-to-r from-purple-900 via-black to-cyan-900 text-gray-400 text-xs py-4 text-center border-t border-white/10">
-  © 2026 Developed by Encegen AI Labs Pvt Ltd &nbsp; | &nbsp;
+  © 2026 Developed by Encegen AI Labs &nbsp; | &nbsp;
   <span className="hover:text-white cursor-pointer">Terms and Conditions</span>
   &nbsp; • &nbsp;
   <span className="hover:text-white cursor-pointer">Privacy Policy</span>
