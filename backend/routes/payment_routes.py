@@ -1,212 +1,199 @@
-from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
+import os
+import hmac
+import hashlib
+import razorpay
 
+from flask import Blueprint, request, jsonify
+from werkzeug.utils import secure_filename
+from datetime import datetime
+
+from config import Config
 from extensions import db
 from models.order import Order
-from models.order_item import OrderItem
-from models.product import Product
 
-from utils.telegram import send_admin_alert
+from utils.telegram import send_admin_alert, send_admin_photo
 
 
-order_bp = Blueprint("payments", __name__)
+payment_bp = Blueprint("payment", __name__)
+
+client = razorpay.Client(
+    auth=(Config.RAZORPAY_KEY_ID, Config.RAZORPAY_KEY_SECRET)
+)
+
+UPLOAD_FOLDER = "uploads/payment_proofs"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
-# ---------------- GET SINGLE ORDER ----------------
+# ---------------- CREATE RAZORPAY ORDER ----------------
 
-@order_bp.get("/<int:order_id>")
-@jwt_required()
-def get_single_order(order_id):
+@payment_bp.post("/create-order")
+def create_order():
 
-    user_id = get_jwt_identity()
+    data = request.json
+    order_id = data.get("order_id")
+    amount = int(data.get("amount"))
 
-    order = Order.query.filter_by(id=order_id, user_id=user_id).first()
+    razorpay_order = client.order.create({
+        "amount": amount,
+        "currency": "INR",
+        "payment_capture": 1,
+        "notes": {"order_id": order_id}
+    })
+
+    order = Order.query.get(order_id)
 
     if not order:
         return {"error": "Order not found"}, 404
 
-    item = OrderItem.query.filter_by(order_id=order.id).first()
-
-    product = None
-    if item:
-        product = Product.query.get(item.product_id)
-
-    return jsonify({
-        "id": order.id,
-        "total": order.total_amount,
-        "price": item.price if item else None,
-        "quantity": item.quantity if item else 1,
-
-        "status": order.status,
-        "payment_status": order.payment_status,
-        "payment_method": order.payment_method,
-
-        "createdAt": order.created_at.strftime("%Y-%m-%d %H:%M"),
-
-        "product": {
-            "title": product.title if product else None,
-            "image": product.image if product else None
-        } if product else None,
-
-        "billing": {
-            "first_name": order.first_name,
-            "last_name": order.last_name,
-            "email": order.email,
-            "phone": order.phone,
-            "country": order.country,
-            "address": order.address,
-            "postal_code": order.postal_code
-        }
-    })
-
-
-# ---------------- CREATE ORDER ----------------
-
-@order_bp.post("/")
-@jwt_required()
-def create_order():
-
-    user_id = get_jwt_identity()
-    data = request.json
-
-    items = data.get("items", [])
-    billing = data.get("billing") or {}
-
-    if not items:
-        return {"error": "No items provided"}, 400
-
-    total = 0
-    order_items = []
-    product_titles = []
-
-    # calculate total
-    for item in items:
-
-        product = Product.query.get(item["product_id"])
-
-        if not product:
-            continue
-
-        qty = int(item.get("quantity", 1))
-        price = float(product.price)
-
-        total += price * qty
-
-        product_titles.append(product.title)
-
-        order_items.append({
-            "product": product,
-            "qty": qty,
-            "price": price
-        })
-
-    if total == 0:
-        return {"error": "Invalid products"}, 400
-
-
-    # ---------------- CREATE ORDER ----------------
-
-    order = Order(
-        user_id=user_id,
-        total_amount=total,
-        payment_method=data.get("payment_method"),
-        status="pending",
-
-        first_name=billing.get("first_name"),
-        last_name=billing.get("last_name"),
-        email=billing.get("email"),
-        phone=billing.get("phone"),
-        country=billing.get("country"),
-        address=billing.get("address"),
-        postal_code=billing.get("postal_code"),
-        coupon_code=billing.get("coupon"),
-    )
-
-    db.session.add(order)
-    db.session.flush()
-
-
-    # ---------------- CREATE ORDER ITEMS ----------------
-
-    for item in order_items:
-
-        order_item = OrderItem(
-            order_id=order.id,
-            product_id=item["product"].id,
-            quantity=item["qty"],
-            price=item["price"]
-        )
-
-        db.session.add(order_item)
+    order.razorpay_order_id = razorpay_order["id"]
 
     db.session.commit()
 
+    return jsonify({
+        "key": Config.RAZORPAY_KEY_ID,
+        "razorpay_order_id": razorpay_order["id"],
+        "amount": razorpay_order["amount"]
+    })
 
-    # ---------------- TELEGRAM ALERT ----------------
+# ---------------- VERIFY PAYPAL PAYMENT ----------------
 
-    try:
+@payment_bp.post("/paypal-verify")
+def verify_paypal_payment():
 
-        products_text = "\n".join(product_titles)
+    data = request.json
 
-        send_admin_alert(
+    order_id = data.get("order_id")
+    paypal_order_id = data.get("paypal_order_id")
+
+    if not order_id or not paypal_order_id:
+        return {"error": "Invalid data"}, 400
+
+    order = Order.query.get(order_id)
+
+    if not order:
+        return {"error": "Order not found"}, 404
+
+    # Update order
+    order.status = "paid"
+    order.payment_status = "paid"
+    order.paypal_order_id = paypal_order_id
+    order.verified_at = datetime.utcnow()
+
+    db.session.commit()
+
+    # 🔔 TELEGRAM ALERT
+    send_admin_alert(
 f"""
-🛒 <b>New Order Created</b>
+💰 <b>PayPal Payment Received</b>
 
 <b>Order ID:</b> #{order.id}
+<b>Amount:</b> ${order.total_amount}
 
-<b>Products:</b>
-{products_text}
+<b>PayPal Order ID:</b>
+{paypal_order_id}
 
-<b>Amount:</b> ${total}
+Status: <b>PAID</b>
+"""
+    )
 
-<b>Payment Method:</b> {order.payment_method}
+    return {"message": "PayPal payment verified"}
+# ---------------- VERIFY RAZORPAY PAYMENT ----------------
+
+@payment_bp.post("/verify")
+def verify_payment():
+
+    data = request.json
+
+    order_id = data["order_id"]
+    razorpay_order_id = data["razorpay_order_id"]
+    razorpay_payment_id = data["razorpay_payment_id"]
+    razorpay_signature = data["razorpay_signature"]
+
+    generated_signature = hmac.new(
+        bytes(Config.RAZORPAY_KEY_SECRET, "utf-8"),
+        bytes(razorpay_order_id + "|" + razorpay_payment_id, "utf-8"),
+        hashlib.sha256
+    ).hexdigest()
+
+    if generated_signature != razorpay_signature:
+        return {"error": "Invalid payment"}, 400
+
+    order = Order.query.get(order_id)
+
+    if not order:
+        return {"error": "Order not found"}, 404
+
+    order.status = "paid"
+    order.payment_status = "paid"
+    order.razorpay_payment_id = razorpay_payment_id
+    order.razorpay_signature = razorpay_signature
+    order.verified_at = datetime.utcnow()
+
+    db.session.commit()
+
+    # 🔔 TELEGRAM ALERT
+    send_admin_alert(
+f"""
+💰 <b>Razorpay Payment Received</b>
+
+<b>Order ID:</b> #{order.id}
+<b>Amount:</b> ₹{order.total_amount}
+
+<b>Payment ID:</b>
+{razorpay_payment_id}
+
+Status: <b>PAID</b>
+"""
+    )
+
+    return {"message": "Payment verified"}
+
+
+# ---------------- MANUAL PAYMENT SCREENSHOT ----------------
+
+@payment_bp.post("/upload-proof/<int:order_id>")
+def upload_proof(order_id):
+
+    order = Order.query.get(order_id)
+
+    if not order:
+        return {"error": "Order not found"}, 404
+
+    file = request.files.get("screenshot")
+
+    if not file:
+        return {"error": "Screenshot required"}, 400
+
+    filename = secure_filename(f"order_{order_id}_{file.filename}")
+    path = os.path.join(UPLOAD_FOLDER, filename)
+
+    file.save(path)
+
+    order.payment_proof = path
+    order.payment_status = "pending_verification"
+
+    db.session.commit()
+
+    # 🔔 TELEGRAM ALERT WITH SCREENSHOT
+    send_admin_photo(
+        path,
+f"""
+📸 <b>Manual Payment Uploaded</b>
+
+<b>Order ID:</b> #{order.id}
+<b>Amount:</b> ₹{order.total_amount}
 
 <b>Customer:</b>
 {order.email}
+
+Please verify payment screenshot.
 """,
 buttons=[
 [
 {"text": "Approve ✅", "callback_data": f"approve_{order.id}"},
 {"text": "Reject ❌", "callback_data": f"reject_{order.id}"}
-],
-[
-{"text": "Open Admin Panel", "url": "http://localhost:5173/login"}
 ]
 ]
 )
 
-    except Exception as e:
-        print("Telegram alert failed:", e)
-
-
-    return {
-        "order_id": order.id,
-        "amount": total
-    }
-
-
-# ---------------- USER ORDER LIST ----------------
-
-@order_bp.get("/")
-@jwt_required()
-def get_orders():
-
-    user_id = get_jwt_identity()
-
-    orders = Order.query.filter_by(user_id=user_id)\
-        .order_by(Order.id.desc())\
-        .all()
-
-    result = []
-
-    for o in orders:
-
-        result.append({
-            "id": o.id,
-            "total": o.total_amount,
-            "status": o.status,
-            "payment_status": o.payment_status,
-            "createdAt": o.created_at.strftime("%Y-%m-%d %H:%M")
-        })
-
-    return jsonify(result)
+    return {"message": "Payment proof uploaded"}

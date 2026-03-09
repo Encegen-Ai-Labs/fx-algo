@@ -8,7 +8,8 @@ FaTimes,
 FaQrcode,
 FaMoneyBillWave,
 FaCheckCircle,
-FaCopy
+FaCopy,
+FaSpinner
 } from "react-icons/fa";
 
 export default function ManualPayment() {
@@ -20,7 +21,7 @@ const [order, setOrder] = useState(null);
 const [file, setFile] = useState(null);
 const [preview, setPreview] = useState(null);
 const [txId, setTxId] = useState("");
-
+const [loading, setLoading] = useState(false);
 const [message, setMessage] = useState(null);
 const [messageType, setMessageType] = useState("success");
 
@@ -145,7 +146,6 @@ setMessageType("success");
 
 
 /* UPLOAD */
-
 const uploadProof = async () => {
 
 if (timeLeft <= 0) {
@@ -167,6 +167,8 @@ formData.append("transaction_id", txId);
 
 try {
 
+setLoading(true);
+
 await api.post(`/payment/upload-proof/${orderId}`, formData);
 
 setSubmitted(true);
@@ -182,10 +184,13 @@ console.log(err);
 setMessage("Upload failed. Please try again.");
 setMessageType("error");
 
+} finally {
+
+setLoading(false);
+
 }
 
 };
-
 
 if (!order) {
 return (
@@ -445,16 +450,28 @@ Cancel
 
 
 <button
-disabled={timeLeft <= 0}
+disabled={timeLeft <= 0 || loading}
 onClick={uploadProof}
-className="flex-1 py-3 bg-yellow-400 text-black font-bold rounded-lg hover:scale-105 transition flex items-center justify-center gap-2 disabled:opacity-50"
+className={`flex-1 py-3 font-bold rounded-lg transition flex items-center justify-center gap-2
+${loading
+? "bg-gray-600 cursor-not-allowed"
+: "bg-yellow-400 text-black hover:scale-105"}
+`}
 >
 
-<FaCheckCircle />
+{loading ? (
+<>
+<FaSpinner className="animate-spin"/>
+Uploading...
+</>
+) : (
+<>
+<FaCheckCircle/>
 Submit
+</>
+)}
 
 </button>
-
 </div>
 
 </div>

@@ -6,7 +6,8 @@ import {
 FaUpload,
 FaCopy,
 FaCheckCircle,
-FaClock
+FaClock,
+FaSpinner
 } from "react-icons/fa";
 
 export default function CryptoPayment(){
@@ -16,7 +17,7 @@ const navigate = useNavigate();
 
 const [order,setOrder] = useState(null);
 const [network,setNetwork] = useState("btc");
-
+const [loading,setLoading] = useState(false);
 const [file,setFile] = useState(null);
 const [preview,setPreview] = useState(null);
 const [txId,setTxId] = useState("");
@@ -124,35 +125,40 @@ setPreview(URL.createObjectURL(selected))
 
 
 /* UPLOAD PAYMENT */
+const uploadProof = async () => {
 
-const uploadProof=async()=>{
+  if(!file){
+    alert("Please upload payment screenshot")
+    return
+  }
 
-if(!file){
-alert("Please upload payment screenshot")
-return
-}
+  const formData = new FormData()
 
-const formData=new FormData()
+  formData.append("screenshot",file)
+  formData.append("transaction_id",txId)
+  formData.append("network",network)
 
-formData.append("screenshot",file)
-formData.append("transaction_id",txId)
-formData.append("network",network)
+  try{
 
-try{
+    setLoading(true)
 
-await api.post(`/payment/upload-proof/${orderId}`,formData)
+    await api.post(`/payment/upload-proof/${orderId}`,formData)
 
-setSubmitted(true)
+    setSubmitted(true)
 
-setFile(null)
-setPreview(null)
-setTxId("")
+    setFile(null)
+    setPreview(null)
+    setTxId("")
 
-}catch(err){
+  }catch(err){
 
-alert("Upload failed. Please try again.")
+    alert("Upload failed. Please try again.")
 
-}
+  }finally{
+
+    setLoading(false)
+
+  }
 
 }
 
@@ -327,22 +333,24 @@ className="w-full p-2 rounded-lg bg-[#0a0614] border border-gray-700"
 <div className="flex gap-3">
 
 <button
-onClick={()=>navigate("/cart")}
-className="flex-1 py-2 bg-gray-700 rounded-lg"
->
-
-Cancel
-
-</button>
-
-<button
 onClick={uploadProof}
-className="flex-1 py-2 bg-yellow-400 text-black font-bold rounded-lg flex items-center justify-center gap-2"
+disabled={loading}
+className={`flex-1 py-2 font-bold rounded-lg flex items-center justify-center gap-2 transition
+${loading ? "bg-gray-600 cursor-not-allowed" : "bg-yellow-400 text-black hover:scale-105"}
+`}
 >
 
+{loading ? (
+<>
+<FaSpinner className="animate-spin"/>
+Uploading...
+</>
+) : (
+<>
 <FaCheckCircle/>
-
 Submit
+</>
+)}
 
 </button>
 

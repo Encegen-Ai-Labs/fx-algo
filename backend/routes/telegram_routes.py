@@ -2,6 +2,9 @@ from flask import Blueprint, request
 from models.order import Order
 from extensions import db
 from datetime import datetime
+import requests
+
+BOT_TOKEN = "8646978360:AAFNYuAMKMfJmFEi094mBmvLdDaJk7vekpE"
 
 telegram_bp = Blueprint("telegram", __name__)
 
@@ -15,13 +18,11 @@ def telegram_webhook():
         return {"ok": True}
 
     callback = data["callback_query"]
-
     action = callback["data"]
 
     if action.startswith("approve_"):
 
         order_id = int(action.split("_")[1])
-
         order = Order.query.get(order_id)
 
         if order:
@@ -34,12 +35,16 @@ def telegram_webhook():
     elif action.startswith("reject_"):
 
         order_id = int(action.split("_")[1])
-
         order = Order.query.get(order_id)
 
         if order:
             order.payment_status = "rejected"
-
             db.session.commit()
+
+    # 🔔 answer callback
+    requests.post(
+        f"https://api.telegram.org/bot{BOT_TOKEN}/answerCallbackQuery",
+        data={"callback_query_id": callback["id"]}
+    )
 
     return {"ok": True}

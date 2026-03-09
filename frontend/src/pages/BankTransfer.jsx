@@ -8,7 +8,8 @@ import {
   FaTimes,
   FaCopy,
   FaClock,
-  FaUniversity
+  FaUniversity,
+  FaSpinner
 } from "react-icons/fa";
 
 export default function BankTransfer(){
@@ -128,7 +129,7 @@ setPreview(URL.createObjectURL(selected))
 
 /* UPLOAD PROOF */
 
-const uploadProof=async()=>{
+const uploadProof = async () => {
 
 if(timeLeft<=0){
 alert("Payment time expired")
@@ -148,6 +149,8 @@ formData.append("transaction_id",txId)
 
 try{
 
+setLoading(true)
+
 await api.post(`/payment/upload-proof/${orderId}`,formData)
 
 setSubmitted(true)
@@ -156,11 +159,13 @@ setSubmitted(true)
 
 alert("Upload failed")
 
-}
+}finally{
+
+setLoading(false)
 
 }
 
-
+}
 if(!order) return <div className="text-white p-10">Loading...</div>
 
 
@@ -342,16 +347,26 @@ Cancel
 </button>
 
 <button
+disabled={loading}
 onClick={uploadProof}
-className="flex-1 py-3 bg-yellow-400 text-black font-bold rounded-lg flex items-center justify-center gap-2 hover:scale-105 transition"
+className={`flex-1 py-3 font-bold rounded-lg flex items-center justify-center gap-2 transition
+${loading ? "bg-gray-600 cursor-not-allowed" : "bg-yellow-400 text-black hover:scale-105"}
+`}
 >
 
+{loading ? (
+<>
+<FaSpinner className="animate-spin"/>
+Uploading...
+</>
+) : (
+<>
 <FaCheckCircle/>
-
 Submit Payment
+</>
+)}
 
 </button>
-
 </div>
 
 
