@@ -9,7 +9,7 @@ from routes.auth_routes import auth_bp
 from routes.product_routes import product_bp
 from routes.order_routes import order_bp
 from routes.license_routes import license_bp
-from routes.payment_routes import order_bp
+from routes.payment_routes import payment_bp
 from routes.site_settings_routes import settings_bp
 from routes.testimonial_routes import testimonial_bp
 from routes.admin_routes import admin_bp
@@ -46,6 +46,7 @@ jwt.init_app(app)
 app.register_blueprint(auth_bp, url_prefix="/api/auth")
 app.register_blueprint(product_bp, url_prefix="/api/products")
 app.register_blueprint(order_bp, url_prefix="/api/orders")
+app.register_blueprint(payment_bp, url_prefix="/payment")
 app.register_blueprint(license_bp, url_prefix="/api/licenses")
 app.register_blueprint(admin_bp, url_prefix="/api/admin")
 app.register_blueprint(telegram_bp)
