@@ -157,7 +157,7 @@ buttons=[
 {"text": "Reject ❌", "callback_data": f"reject_{order.id}"}
 ],
 [
-{"text": "Open Admin Panel", "url": "http://fxalgo.net/login"}
+{"text": "Open Admin Panel", "url": "http://fxalgo.net/"}
 ]
 ]
 )
