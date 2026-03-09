@@ -1,3 +1,6 @@
+import { Link } from "react-router-dom";
+
+
 export default function Terms() {
   return (
     <section className="bg-black border-t border-cyan-500/30">
@@ -58,11 +61,26 @@ export default function Terms() {
       </div>
 
       {/* BOTTOM STRIP */}
-     <div className="bg-gradient-to-r from-purple-900 via-black to-cyan-900 text-gray-400 text-xs py-4 text-center border-t border-white/10">
+ 
+
+<div className="bg-gradient-to-r from-purple-900 via-black to-cyan-900 text-gray-400 text-xs py-4 text-center border-t border-white/10">
   © 2026 Developed by Encegen AI Labs &nbsp; | &nbsp;
-  <span className="hover:text-white cursor-pointer">Terms and Conditions</span>
+
+  <Link to="/termspage" className="hover:text-white">
+    Terms
+  </Link>
+
   &nbsp; • &nbsp;
-  <span className="hover:text-white cursor-pointer">Privacy Policy</span>
+
+  <Link to="/privacy" className="hover:text-white">
+    Privacy
+  </Link>
+
+  &nbsp; • &nbsp;
+
+  <Link to="/refund-policy" className="hover:text-white">
+    Refund Policy
+  </Link>
 </div>
 
     </section>

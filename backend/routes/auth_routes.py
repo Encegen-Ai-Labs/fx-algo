@@ -4,6 +4,10 @@ from models.user import User
 from flask_jwt_extended import create_access_token
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.security import generate_password_hash
+from flask import jsonify
+from datetime import timedelta
+from utils.email import send_reset_email
+
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -87,3 +91,51 @@ def google_login():
         "token": token,
         "role": user.role
     }
+
+@auth_bp.post("/forgot-password")
+def forgot_password():
+
+    email = request.json.get("email")
+
+    user = User.query.filter_by(email=email).first()
+
+    if not user:
+        return jsonify({"msg": "User not found"}), 404
+
+    token = create_access_token(
+        identity=str(user.id),
+        expires_delta=timedelta(minutes=30)
+    )
+
+    
+    reset_link = f"https://fxalgo.net/reset-password/{token}"
+
+    send_reset_email(email, reset_link)
+
+    return jsonify({"msg": "Reset email sent"})
+
+@auth_bp.post("/reset-password")
+def reset_password():
+
+    token = request.json.get("token")
+    new_password = request.json.get("password")
+
+    try:
+        from flask_jwt_extended import decode_token
+        decoded = decode_token(token)
+
+        user_id = decoded["sub"]
+
+        user = User.query.get(int(user_id))
+
+        if not user:
+            return {"error": "User not found"}, 404
+
+        user.set_password(new_password)
+
+        db.session.commit()
+
+        return {"msg": "Password updated"}
+
+    except Exception:
+        return {"error": "Invalid or expired token"}, 400

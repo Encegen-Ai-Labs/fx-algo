@@ -1,6 +1,6 @@
 from flask import Flask, send_from_directory, request
 from config import Config
-from extensions import db, jwt
+from extensions import db, jwt, mail
 from flask_cors import CORS
 import os
 
@@ -40,7 +40,7 @@ CORS(
 
 db.init_app(app)
 jwt.init_app(app)
-
+mail.init_app(app)
 # ------------------ REGISTER API ROUTES ------------------
 
 app.register_blueprint(auth_bp, url_prefix="/api/auth")

@@ -46,6 +46,11 @@ import ManualPayment from "./pages/ManualPayment";
 import OrderDetails from "./pages/OrderDetails";
 import CryptoPayment from "./pages/CryptoPayment";
 import BankTransfer from "./pages/BankTransfer";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import Termspage from "./pages/Termspage";
+import RefundPolicy from "./pages/RefundPolicy";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 /* HOME */
 function Home() {
@@ -103,6 +108,12 @@ function AppRoutes() {
         <Route path="/crypto-payment/:orderId" element={<CryptoPayment />} />
         <Route path="/bank-transfer/:orderId" element={<BankTransfer />} />
         <Route path="/products" element={<Products />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/termspage" element={<Termspage />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+         <Route path="/refund-policy" element={<RefundPolicy />} />
         <Route path="/about" element={<About />} />
 
         {/* AUTH */}

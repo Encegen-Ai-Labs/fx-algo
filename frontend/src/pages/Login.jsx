@@ -136,25 +136,36 @@ export default function Login() {
 
         {/* PASSWORD */}
 
-        <div className="relative mb-6">
+        <div className="relative mb-2">
 
-          <input
-            type={showPassword ? "text" : "password"}
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 pr-12 rounded bg-[#0e061a]"
-          />
+  <input
+    type={showPassword ? "text" : "password"}
+    placeholder="Password"
+    value={password}
+    onChange={(e) => setPassword(e.target.value)}
+    className="w-full p-3 pr-12 rounded bg-[#0e061a]"
+  />
 
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 "
-          >
-            {showPassword ? <EyeOff size={18} color="black" /> : <Eye size={18} color="black" />}
-          </button>
+  <button
+    type="button"
+    onClick={() => setShowPassword(!showPassword)}
+    className="absolute right-3 top-1/2 -translate-y-1/2"
+  >
+    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+  </button>
 
-        </div>
+</div>
+
+<div className="text-right mb-6">
+  <Link
+    to="/forgot-password"
+    className="text-sm text-yellow-400 hover:underline"
+  >
+    Forgot Password?
+  </Link>
+</div>
+
+    
 
         {/* LOGIN BUTTON */}
 
