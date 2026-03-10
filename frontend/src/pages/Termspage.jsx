@@ -1,6 +1,12 @@
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
 
+ 
 export default function Terms() {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div className="min-h-screen bg-black text-gray-300 px-6 py-16 flex justify-center">
 
@@ -25,7 +31,12 @@ export default function Terms() {
         </p>
 
         <p className="mb-6">
-          Welcome to FX Algo (https://fxalgo.net). By accessing or purchasing
+          Welcome to FX Algo (<a
+            href="https://fxalgo.net"
+            className="text-cyan-400 ml-1 hover:underline"
+          >
+            https://fxalgo.net
+          </a>). By accessing or purchasing
           from our website, you agree to the following terms and conditions.
         </p>
 
@@ -89,7 +100,14 @@ export default function Terms() {
             support@fxalgo.net
           </a>
           <br />
-          Website: https://fxalgo.net
+
+          Website:  <a
+            href="https://fxalgo.net"
+            className="text-cyan-400 ml-1 hover:underline"
+          >
+            https://fxalgo.net
+          </a>
+          
         </p>
 
       </div>

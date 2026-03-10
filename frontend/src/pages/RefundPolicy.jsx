@@ -1,6 +1,12 @@
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
+
+
 
 export default function RefundPolicy() {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   return (
     <div className="min-h-screen bg-black text-gray-300 px-6 py-16 flex justify-center">
 
@@ -25,7 +31,12 @@ export default function RefundPolicy() {
         </p>
 
         <p className="mb-6">
-          Thank you for purchasing from FX Algo (https://fxalgo.net).
+          Thank you for purchasing from FX Algo (<a
+            href="https://fxalgo.net"
+            className="text-cyan-400 ml-1 hover:underline"
+          >
+            https://fxalgo.net
+          </a>).
         </p>
 
         <p className="mb-6">
@@ -99,7 +110,12 @@ export default function RefundPolicy() {
             support@fxalgo.net
           </a>
           <br />
-          Website: https://fxalgo.net
+          Website: <a
+            href="https://fxalgo.net"
+            className="text-cyan-400 ml-1 hover:underline"
+          >
+            https://fxalgo.net
+          </a>
         </p>
 
       </div>

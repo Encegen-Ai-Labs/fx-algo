@@ -17,3 +17,4 @@ class Config:
     MAIL_USERNAME = "fxalgof@gmail.com"
     MAIL_PASSWORD = "amfm gmcm gbjz mkij"
     MAIL_DEFAULT_SENDER = "fxalgof@gmail.com"
+    MAX_CONTENT_LENGTH = 200 * 1024 * 1024

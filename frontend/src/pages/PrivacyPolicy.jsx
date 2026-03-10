@@ -1,6 +1,12 @@
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
+
+
 
 export default function PrivacyPolicy() {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   return (
     <div className="min-h-screen bg-black text-gray-300 px-6 py-16 flex justify-center">
 
@@ -25,7 +31,12 @@ export default function PrivacyPolicy() {
         </p>
 
         <p className="mb-6">
-          Welcome to FX Algo (https://fxalgo.net). Your privacy is important to us.
+          Welcome to FX Algo (<a
+            href="https://fxalgo.net"
+            className="text-cyan-400 ml-1 hover:underline"
+          >
+            https://fxalgo.net
+          </a>). Your privacy is important to us.
           This Privacy Policy document explains how we collect, use, and protect
           your information when you visit our website or purchase our products.
         </p>
@@ -115,7 +126,12 @@ export default function PrivacyPolicy() {
             support@fxalgo.net
           </a>
           <br />
-          Website: https://fxalgo.net
+          Website: <a
+            href="https://fxalgo.net"
+            className="text-cyan-400 ml-1 hover:underline"
+          >
+            https://fxalgo.net
+          </a>
         </p>
 
         <p className="mt-8 text-sm text-gray-400">

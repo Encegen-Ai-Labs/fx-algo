@@ -1,23 +1,31 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 from extensions import db
 from models.product import Product
 from utils.admin_required import admin_required
 
 import os
+import uuid
 from werkzeug.utils import secure_filename
 
 product_bp = Blueprint("products", __name__)
+
+IMAGE_FOLDER = "uploads/images"
+FILE_FOLDER = "uploads/files"
+
+os.makedirs(IMAGE_FOLDER, exist_ok=True)
+os.makedirs(FILE_FOLDER, exist_ok=True)
+
 
 # ---------------------------
 # PUBLIC ROUTES (CUSTOMERS)
 # ---------------------------
 
-# GET ALL PRODUCTS (Homepage)
+# GET ALL PRODUCTS
 @product_bp.get("/")
 def all_products():
     products = Product.query.all()
 
-    return [
+    return jsonify([
         {
             "id": p.id,
             "title": p.title,
@@ -25,16 +33,18 @@ def all_products():
             "image": p.image,
             "discount": p.discount,
             "old_price": p.old_price
-        } for p in products
-    ]
+        }
+        for p in products
+    ])
 
 
-# GET SINGLE PRODUCT (Product Detail Page)
+# GET SINGLE PRODUCT
 @product_bp.get("/<int:id>")
 def single_product(id):
+
     p = Product.query.get_or_404(id)
 
-    return {
+    return jsonify({
         "id": p.id,
         "title": p.title,
         "description": p.description,
@@ -43,11 +53,11 @@ def single_product(id):
         "discount": p.discount,
         "image": p.image,
         "file_url": p.file_url
-    }
+    })
 
 
 # ---------------------------
-# ADMIN ROUTES (SUPERADMIN ONLY)
+# ADMIN ROUTES
 # ---------------------------
 
 # CREATE PRODUCT
@@ -55,62 +65,189 @@ def single_product(id):
 @admin_required
 def add_product():
 
-    title = request.form.get("title")
-    description = request.form.get("description")
-    price = request.form.get("price")
-    discount = request.form.get("discount", 0)
-    old_price = request.form.get("old_price", 0)
+    try:
 
-    # Create upload folders if not exist
-    os.makedirs("uploads/images", exist_ok=True)
-    os.makedirs("uploads/files", exist_ok=True)
+        title = request.form.get("title")
+        description = request.form.get("description")
+        price = request.form.get("price")
 
-    # ---------------- IMAGE UPLOAD ----------------
-    image_file = request.files.get("image")
-    image_path = None
+        if not title or not price:
+            return jsonify({"error": "Title and price required"}), 400
 
-    if image_file:
-        filename = secure_filename(image_file.filename)
-        image_save_path = os.path.join("uploads/images", filename)
-        image_file.save(image_save_path)
-        image_path = "/" + image_save_path.replace("\\", "/")
+        discount = request.form.get("discount", 0)
+        old_price = request.form.get("old_price", 0)
 
-    # ---------------- BOT FILE UPLOAD ----------------
-    bot_file = request.files.get("file")
-    file_path = None
+        # ---------------- IMAGE ----------------
+        image_file = request.files.get("image")
+        image_path = None
 
-    if bot_file:
-        filename = secure_filename(bot_file.filename)
-        file_save_path = os.path.join("uploads/files", filename)
-        bot_file.save(file_save_path)
-        file_path = "/" + file_save_path.replace("\\", "/")
+        if image_file:
 
-    # Create product
-    product = Product(
-        title=title,
-        description=description,
-        price=float(price),
-        discount=int(discount),
-        old_price=float(old_price),
-        image=image_path,
-        file_url=file_path
-    )
+            filename = secure_filename(image_file.filename)
+            filename = f"{uuid.uuid4()}_{filename}"
 
-    db.session.add(product)
-    db.session.commit()
+            save_path = os.path.join(IMAGE_FOLDER, filename)
+            image_file.save(save_path)
 
-    return {"message": "Product created successfully", "id": product.id}
+            image_path = "/" + save_path.replace("\\", "/")
 
 
+        # ---------------- BOT FILE ----------------
+        bot_file = request.files.get("file")
+        file_path = None
+
+        if bot_file:
+
+            filename = secure_filename(bot_file.filename)
+            filename = f"{uuid.uuid4()}_{filename}"
+
+            save_path = os.path.join(FILE_FOLDER, filename)
+            bot_file.save(save_path)
+
+            file_path = "/" + save_path.replace("\\", "/")
+
+
+        product = Product(
+            title=title,
+            description=description,
+            price=float(price),
+            discount=int(discount),
+            old_price=float(old_price),
+            image=image_path,
+            file_url=file_path
+        )
+
+        db.session.add(product)
+        db.session.commit()
+
+        return jsonify({
+            "message": "Product created successfully",
+            "id": product.id
+        })
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        return jsonify({
+            "error": str(e)
+        }), 500
+
+
+# ---------------------------
+# UPDATE PRODUCT
+# ---------------------------
+
+@product_bp.put("/<int:id>")
+@admin_required
+def update_product(id):
+
+    try:
+
+        product = Product.query.get_or_404(id)
+
+        product.title = request.form.get("title", product.title)
+        product.description = request.form.get("description", product.description)
+
+        if request.form.get("price"):
+            product.price = float(request.form.get("price"))
+
+        if request.form.get("old_price"):
+            product.old_price = float(request.form.get("old_price"))
+
+        if request.form.get("discount"):
+            product.discount =  float(request.form.get("discount"))
+
+
+        # ---------------- IMAGE UPDATE ----------------
+        image_file = request.files.get("image")
+
+        if image_file:
+
+            # delete old image
+            if product.image:
+                old_path = product.image.lstrip("/")
+                if os.path.exists(old_path):
+                    os.remove(old_path)
+
+            filename = secure_filename(image_file.filename)
+            filename = f"{uuid.uuid4()}_{filename}"
+
+            save_path = os.path.join(IMAGE_FOLDER, filename)
+            image_file.save(save_path)
+
+            product.image = "/" + save_path.replace("\\", "/")
+
+
+        # ---------------- FILE UPDATE ----------------
+        bot_file = request.files.get("file")
+
+        if bot_file:
+
+            if product.file_url:
+                old_path = product.file_url.lstrip("/")
+                if os.path.exists(old_path):
+                    os.remove(old_path)
+
+            filename = secure_filename(bot_file.filename)
+            filename = f"{uuid.uuid4()}_{filename}"
+
+            save_path = os.path.join(FILE_FOLDER, filename)
+            bot_file.save(save_path)
+
+            product.file_url = "/" + save_path.replace("\\", "/")
+
+
+        db.session.commit()
+
+        return jsonify({
+            "message": "Product updated successfully"
+        })
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        return jsonify({
+            "error": str(e)
+        }), 500
+
+
+# ---------------------------
 # DELETE PRODUCT
+# ---------------------------
+
 @product_bp.delete("/<int:id>")
 @admin_required
 def delete_product(id):
 
-    product = Product.query.get_or_404(id)
+    try:
 
-    db.session.delete(product)
-    db.session.commit()
+        product = Product.query.get_or_404(id)
 
-    return {"message": "Product deleted"}
+        # delete image
+        if product.image:
+            path = product.image.lstrip("/")
+            if os.path.exists(path):
+                os.remove(path)
 
+        # delete file
+        if product.file_url:
+            path = product.file_url.lstrip("/")
+            if os.path.exists(path):
+                os.remove(path)
+
+        db.session.delete(product)
+        db.session.commit()
+
+        return jsonify({
+            "message": "Product deleted successfully"
+        })
+
+    except Exception as e:
+
+        db.session.rollback()
+
+        return jsonify({
+            "error": str(e)
+        }), 500

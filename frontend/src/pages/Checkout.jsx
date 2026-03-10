@@ -2,6 +2,7 @@ import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import Breadcrumbs from "../components/Breadcrumbs";
+import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 import PhoneInput from "react-phone-input-2";
@@ -411,14 +412,22 @@ ${errors[field] ? "border-red-500" : ""}`}
     className="accent-yellow-400 mt-1"
   />
 
-  <span>
-    I confirm that:
-    <ul className="list-disc ml-5 mt-1 space-y-1">
-      <li>I have read and agreed to the Terms of Use.</li>
-      <li>All information provided is correct and matches government-issued ID.</li>
-      <li>I have read and agree with the Terms & Conditions.</li>
-    </ul>
-  </span>
+ <span>
+  I confirm that:
+  <ul className="list-disc ml-5 mt-1 space-y-1">
+    <li>I have read and agreed to the Terms of Use.</li>
+    <li>All information provided is correct and matches government-issued ID.</li>
+    <li>
+      I have read and agree with the{" "}
+      <Link
+        to="/termspage"
+        className="text-blue-500 hover:text-blue-700 underline"
+      >
+        Terms and Conditions
+      </Link>
+    </li>
+  </ul>
+</span>
 </label>
 
  <button

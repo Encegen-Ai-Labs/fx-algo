@@ -2,29 +2,37 @@ import { useEffect, useState } from "react";
 import AdminNavbar from "./AdminNavbar";
 import api from "../../api/axios";
 
+const initialForm = {
+  title: "",
+  price: "",
+  old_price: "",
+  discount: "",
+  description: "",
+  image: null,
+};
+
 export default function AdminProducts() {
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
-  const [form, setForm] = useState({
-    title: "",
-    price: "",
-    old_price: "",
-    discount: "",
-    description: "",
-    image: null,
-    botFile: null,
-  });
+  const [editingId, setEditingId] = useState(null);
+  const [form, setForm] = useState(initialForm);
+
+  const BASE = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000";
 
   /* ================= LOAD PRODUCTS ================= */
 
   const loadProducts = async () => {
     try {
+      setLoading(true);
       const res = await api.get("/products");
       setProducts(res.data);
     } catch (err) {
-      console.error("Failed to load products");
+      console.error(err);
+      setError("Failed to load products.");
     } finally {
       setLoading(false);
     }
@@ -43,68 +51,88 @@ export default function AdminProducts() {
     });
   };
 
-  /* ================= ADD PRODUCT ================= */
+  /* ================= IMAGE ================= */
+
+  const handleImage = (e) => {
+    setForm({
+      ...form,
+      image: e.target.files[0],
+    });
+  };
+
+  /* ================= SAVE / UPDATE ================= */
 
   const handleSubmit = async () => {
+
+    if (!form.title || !form.price) {
+      setError("Title and Price are required.");
+      return;
+    }
+
     try {
+
+      setSaving(true);
+      setError("");
 
       const fd = new FormData();
 
-      fd.append("title", form.title);
-      fd.append("price", form.price);
-      fd.append("old_price", form.old_price || 0);
-      fd.append("discount", form.discount || 0);
-      fd.append("description", form.description || "");
-
-      if (form.image) {
-        fd.append("image", form.image);
-      }
-
-      if (form.botFile) {
-        fd.append("file", form.botFile);
-      }
-
-      await api.post("/products", fd, {
-        headers: { "Content-Type": "multipart/form-data" },
+      Object.keys(form).forEach((key) => {
+        if (form[key]) {
+          fd.append(key, form[key]);
+        }
       });
 
-      alert("✅ Product added successfully");
+      if (editingId) {
+        await api.put(`/products/${editingId}`, fd);
+        alert("✅ Product updated");
+      } else {
+        await api.post("/products", fd);
+        alert("✅ Product added");
+      }
 
-      setForm({
-        title: "",
-        price: "",
-        old_price: "",
-        discount: "",
-        description: "",
-        image: null,
-        botFile: null,
-      });
-
+      setForm(initialForm);
+      setEditingId(null);
       loadProducts();
 
     } catch (err) {
-      console.log(err.response?.data);
-      alert("❌ Failed to add product");
+      console.error(err.response?.data);
+      setError("Failed to save product.");
+    } finally {
+      setSaving(false);
     }
   };
 
-  /* ================= DELETE PRODUCT ================= */
+  /* ================= DELETE ================= */
 
   const handleDelete = async (id) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this product?"
-    );
 
-    if (!confirmDelete) return;
+    if (!window.confirm("Delete this product?")) return;
 
     try {
       await api.delete(`/products/${id}`);
-      alert("🗑 Product deleted successfully");
-      loadProducts();
+      setProducts(products.filter((p) => p.id !== id));
     } catch (err) {
-      console.error(err.response?.data);
-      alert("❌ Failed to delete product");
+      console.error(err);
+      alert("Delete failed");
     }
+  };
+
+  /* ================= EDIT ================= */
+
+  const handleEdit = (p) => {
+
+    setEditingId(p.id);
+
+    setForm({
+      title: p.title,
+      price: p.price,
+      old_price: p.old_price,
+      discount: p.discount,
+      description: p.description,
+      image: null,
+    });
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   /* ================= UI ================= */
@@ -113,130 +141,182 @@ export default function AdminProducts() {
     <>
       <AdminNavbar />
 
-      <div className="min-h-screen bg-[#0a0614] text-white px-10 py-10">
-        <h1 className="text-3xl font-bold mb-8">Manage Products</h1>
+      <div className="min-h-screen bg-[#0a0614] text-white p-10">
 
-        <div className="grid grid-cols-3 gap-8">
+        <h1 className="text-3xl font-bold mb-10">
+          Product Management
+        </h1>
 
-          {/* ========= ADD PRODUCT FORM ========= */}
+        <div className="grid lg:grid-cols-3 gap-10">
+
+          {/* ================= FORM ================= */}
+
           <div className="bg-[#1a1033] p-6 rounded-xl shadow-lg">
-            <h2 className="text-xl font-bold mb-6 border-b border-white/10 pb-3">
-              Add New Product
+
+            <h2 className="text-xl font-bold mb-6">
+              {editingId ? "Edit Product" : "Add Product"}
             </h2>
 
-            <input
-              name="title"
-              value={form.title}
-              onChange={handleChange}
-              placeholder="Product Title"
-              className="w-full px-4 py-2 rounded bg-[#0e061a] mb-4"
-            />
+            {error && (
+              <p className="bg-red-500/20 text-red-400 p-2 mb-4 rounded text-sm">
+                {error}
+              </p>
+            )}
 
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <input
-                name="price"
-                value={form.price}
-                onChange={handleChange}
-                placeholder="Price"
-                className="px-4 py-2 rounded bg-[#0e061a]"
-              />
+            <div className="space-y-4">
 
               <input
-                name="old_price"
-                value={form.old_price}
+                name="title"
+                value={form.title}
                 onChange={handleChange}
-                placeholder="Old Price"
-                className="px-4 py-2 rounded bg-[#0e061a]"
+                placeholder="Product Title"
+                className="w-full px-4 py-2 rounded bg-[#0e061a]"
               />
-            </div>
 
-            <input
-              name="discount"
-              value={form.discount}
-              onChange={handleChange}
-              placeholder="Discount %"
-              className="w-full px-4 py-2 rounded bg-[#0e061a] mb-4"
-            />
+              <div className="grid grid-cols-2 gap-4">
 
-            <textarea
-              name="description"
-              value={form.description}
-              onChange={handleChange}
-              placeholder="Product description..."
-              className="w-full px-4 py-2 rounded bg-[#0e061a] h-24 resize-none mb-4"
-            />
+                <input
+                  name="price"
+                  value={form.price}
+                  onChange={handleChange}
+                  placeholder="Price"
+                  className="px-4 py-2 rounded bg-[#0e061a]"
+                />
 
-            <div className="mb-4">
-              <label className="text-sm text-gray-300 block mb-1">
-                Product Image
-              </label>
+                <input
+                  name="old_price"
+                  value={form.old_price}
+                  onChange={handleChange}
+                  placeholder="Old Price"
+                  className="px-4 py-2 rounded bg-[#0e061a]"
+                />
+
+              </div>
+
+              <input
+                name="discount"
+                value={form.discount}
+                onChange={handleChange}
+                placeholder="Discount %"
+                className="w-full px-4 py-2 rounded bg-[#0e061a]"
+              />
+
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                placeholder="Description"
+                className="w-full px-4 py-2 rounded bg-[#0e061a] h-24"
+              />
+
               <input
                 type="file"
-                onChange={(e) =>
-                  setForm({ ...form, image: e.target.files[0] })
-                }
+                onChange={handleImage}
               />
+
+              <button
+                onClick={handleSubmit}
+                disabled={saving}
+                className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 rounded transition"
+              >
+                {saving
+                  ? "Saving..."
+                  : editingId
+                  ? "Update Product"
+                  : "Add Product"}
+              </button>
+
+              {editingId && (
+                <button
+                  onClick={() => {
+                    setEditingId(null);
+                    setForm(initialForm);
+                  }}
+                  className="w-full bg-gray-700 py-2 rounded"
+                >
+                  Cancel Edit
+                </button>
+              )}
+
             </div>
 
-            <button
-              onClick={handleSubmit}
-              className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 rounded transition"
-            >
-              💾 Save Product
-            </button>
           </div>
 
-          {/* ========= PRODUCT LIST ========= */}
-          <div className="col-span-2">
+          {/* ================= PRODUCTS ================= */}
+
+          <div className="lg:col-span-2">
+
             {loading ? (
-              <p className="text-gray-400">Loading products...</p>
+              <p className="text-gray-400">Loading...</p>
             ) : products.length === 0 ? (
-              <p className="text-gray-400">No products yet</p>
+              <p className="text-gray-400">No products found.</p>
             ) : (
-              <div className="grid grid-cols-2 gap-6">
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+
                 {products.map((p) => (
+
                   <div
                     key={p.id}
-                    className="bg-[#1a1033] p-4 rounded-xl relative shadow-lg hover:scale-105 transition"
+                    className="bg-[#1a1033] p-4 rounded-xl shadow hover:scale-105 transition"
                   >
-                    {/* DELETE BUTTON TOP RIGHT */}
-                    <button
-                      onClick={() => handleDelete(p.id)}
-                      className="absolute top-3 right-3 bg-red-600 hover:bg-red-700 text-xs px-3 py-1 rounded"
-                    >
-                      Delete
-                    </button>
 
                     <img
-                      src={`${import.meta.env.VITE_PUBLIC_BASE_URL|| ""}${p.image}`}
+                      src={`${BASE}${p.image}`}
                       alt={p.title}
-                      className="h-40 mx-auto object-contain"
+                      className="h-36 mx-auto object-contain"
                     />
 
-                    <h3 className="mt-3 font-semibold text-center">
+                    <h3 className="mt-3 text-center font-semibold">
                       {p.title}
                     </h3>
 
-                    <div className="flex justify-center gap-2 mt-1 text-sm">
+                    <div className="flex justify-center gap-2 mt-2 text-sm">
+
                       {p.old_price > 0 && (
                         <span className="line-through text-gray-500">
                           ${p.old_price}
                         </span>
                       )}
+
                       <span className="text-orange-400 font-bold">
                         ${p.price}
                       </span>
+
                     </div>
 
                     {p.discount > 0 && (
-                      <p className="text-center text-xs text-green-400 mt-1">
+                      <p className="text-green-400 text-xs text-center mt-1">
                         {p.discount}% OFF
                       </p>
                     )}
+
+                    <div className="flex justify-between mt-4">
+
+                      <button
+                        onClick={() => handleEdit(p)}
+                        className="bg-blue-600 hover:bg-blue-700 text-xs px-3 py-1 rounded"
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        onClick={() => handleDelete(p.id)}
+                        className="bg-red-600 hover:bg-red-700 text-xs px-3 py-1 rounded"
+                      >
+                        Delete
+                      </button>
+
+                    </div>
+
                   </div>
+
                 ))}
+
               </div>
+
             )}
+
           </div>
 
         </div>

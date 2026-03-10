@@ -29,12 +29,25 @@ export default function Navbar() {
 
         {/* LEFT */}
         <Link
-          to="/about"
-          className="text-sm font-semibold px-1 py-2 rounded-full
-                     hover:scale-105 hover:shadow-lg transition-all duration-300"
-        >
-          About Us
-        </Link>
+  to="/about"
+  className="
+    text-sm font-semibold
+    px-5 py-2
+    rounded-full
+    text-black-900
+    backdrop-blur-md
+    bg-black/30
+    border border-yellow-400/30
+    shadow-lg
+    hover:bg-yellow-400
+    hover:text-black
+    hover:shadow-yellow-400/40
+    hover:scale-105
+    transition-all duration-300
+  "
+>
+  About Us
+</Link>
 
         {/* RIGHT: SOCIAL ICONS */}
         <div className="flex gap-4 items-center">

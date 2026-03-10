@@ -67,7 +67,7 @@ export default function Terms() {
   © 2026 Developed by Encegen AI Labs &nbsp; | &nbsp;
 
   <Link to="/termspage" className="hover:text-white">
-    Terms
+    Terms and Conditions
   </Link>
 
   &nbsp; • &nbsp;

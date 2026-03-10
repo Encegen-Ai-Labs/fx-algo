@@ -3,21 +3,33 @@ from extensions import db
 from models.testimonial import Testimonial
 from utils.admin_required import admin_required
 import os
+import uuid
 from werkzeug.utils import secure_filename
 
 testimonial_bp = Blueprint("testimonials", __name__, url_prefix="/api/testimonials")
 
 UPLOAD_FOLDER = "uploads/videos"
+ALLOWED_EXTENSIONS = {"mp4", "mov", "webm"}
+
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+
+# ---------------- FILE VALIDATION ----------------
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 # -------------------- READ (PUBLIC) --------------------
 @testimonial_bp.route("/", methods=["GET"])
 def get_testimonials():
+
     items = Testimonial.query.order_by(Testimonial.id.desc()).all()
 
     data = []
     for t in items:
+
+        video_url = "/" + t.video.replace("\\", "/") if t.video else None
+
         data.append({
             "id": t.id,
             "name": t.name,
@@ -25,7 +37,8 @@ def get_testimonials():
             "flag": t.flag,
             "reward": t.reward,
             "role": t.role,
-            "video": "/" + t.video.replace("\\", "/")
+            "youtube": t.youtube,
+            "video": video_url
         })
 
     return jsonify(data)
@@ -41,10 +54,17 @@ def add_testimonial():
     if not file:
         return jsonify({"error": "Video required"}), 400
 
-    filename = secure_filename(file.filename)
-    path = os.path.join(UPLOAD_FOLDER, filename)
-    file.save(path)
-    
+    if not allowed_file(file.filename):
+        return jsonify({"error": "Invalid video format"}), 400
+
+    # create unique filename
+    ext = file.filename.rsplit(".", 1)[1].lower()
+    filename = f"{uuid.uuid4()}.{ext}"
+
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
+
+    file.save(filepath)
+
     video_path = f"uploads/videos/{filename}"
 
     t = Testimonial(
@@ -53,7 +73,8 @@ def add_testimonial():
         flag=request.form.get("flag"),
         reward=request.form.get("reward"),
         role=request.form.get("role"),
-        video=path
+        youtube=request.form.get("youtube"),
+        video=video_path
     )
 
     db.session.add(t)
@@ -74,19 +95,27 @@ def update_testimonial(id):
     t.flag = request.form.get("flag")
     t.reward = request.form.get("reward")
     t.role = request.form.get("role")
+    t.youtube = request.form.get("youtube")
 
     file = request.files.get("video")
-    if file:
-        # delete old video
+
+    if file and allowed_file(file.filename):
+
+        # delete old file
         if t.video and os.path.exists(t.video):
             os.remove(t.video)
 
-        filename = secure_filename(file.filename)
-        path = os.path.join(UPLOAD_FOLDER, filename)
-        file.save(path)
+        ext = file.filename.rsplit(".", 1)[1].lower()
+        filename = f"{uuid.uuid4()}.{ext}"
+
+        filepath = os.path.join(UPLOAD_FOLDER, filename)
+
+        file.save(filepath)
+
         t.video = f"uploads/videos/{filename}"
 
     db.session.commit()
+
     return jsonify({"message": "Updated"})
 
 
@@ -97,7 +126,6 @@ def delete_testimonial(id):
 
     t = Testimonial.query.get_or_404(id)
 
-    # remove video file
     if t.video and os.path.exists(t.video):
         os.remove(t.video)
 

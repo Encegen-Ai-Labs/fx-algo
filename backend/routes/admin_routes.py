@@ -1,4 +1,4 @@
-from flask import Blueprint
+from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from extensions import db
 
@@ -19,16 +19,19 @@ admin_bp = Blueprint("admin", __name__)
 
 # ---------------- ADMIN CHECK ----------------
 
-def admin_only():
+def get_admin():
 
     user_id = get_jwt_identity()
 
     if not user_id:
-        return False
+        return None
 
     user = User.query.get(user_id)
 
-    return user and user.role == "superadmin"
+    if user and user.role == "superadmin":
+        return user
+
+    return None
 
 
 # ---------------- GET ALL ORDERS ----------------
@@ -37,8 +40,8 @@ def admin_only():
 @jwt_required()
 def admin_orders():
 
-    if not admin_only():
-        return {"error": "Admin only"}, 403
+    if not get_admin():
+        return jsonify({"error": "Admin only"}), 403
 
     orders = Order.query.order_by(Order.id.desc()).all()
 
@@ -69,7 +72,8 @@ def admin_orders():
             "createdAt": o.created_at.strftime("%Y-%m-%d %H:%M")
         })
 
-    return result
+    return jsonify(result)
+
 
 # ---------------- DASHBOARD STATS ----------------
 
@@ -77,22 +81,25 @@ def admin_orders():
 @jwt_required()
 def admin_stats():
 
-    if not admin_only():
-        return {"error": "Admin only"}, 403
+    if not get_admin():
+        return jsonify({"error": "Admin only"}), 403
 
     total_products = Product.query.count()
     total_users = User.query.count()
-    total_orders = Order.query.filter_by(status="paid").count()
+    total_orders = Order.query.filter_by(payment_status="paid").count()
 
-    revenue = db.session.query(db.func.sum(Order.total_amount)).filter_by(status="paid").scalar()
+    revenue = db.session.query(
+        db.func.sum(Order.total_amount)
+    ).filter_by(payment_status="paid").scalar()
+
     revenue = revenue or 0
 
-    return {
+    return jsonify({
         "products": total_products,
         "users": total_users,
         "orders": total_orders,
         "revenue": revenue
-    }
+    })
 
 
 # ---------------- ALL USERS ----------------
@@ -101,8 +108,8 @@ def admin_stats():
 @jwt_required()
 def get_users():
 
-    if not admin_only():
-        return {"error": "Admin only"}, 403
+    if not get_admin():
+        return jsonify({"error": "Admin only"}), 403
 
     users = User.query.all()
 
@@ -110,7 +117,10 @@ def get_users():
 
     for u in users:
 
-        paid_orders = Order.query.filter_by(user_id=u.id, status="paid").all()
+        paid_orders = Order.query.filter_by(
+            user_id=u.id,
+            payment_status="paid"
+        ).all()
 
         order_count = len(paid_orders)
 
@@ -123,7 +133,7 @@ def get_users():
             "spent": total_spent
         })
 
-    return result
+    return jsonify(result)
 
 
 # ---------------- USER DETAIL ----------------
@@ -132,8 +142,8 @@ def get_users():
 @jwt_required()
 def user_detail(user_id):
 
-    if not admin_only():
-        return {"error": "Admin only"}, 403
+    if not get_admin():
+        return jsonify({"error": "Admin only"}), 403
 
     user = User.query.get_or_404(user_id)
 
@@ -147,8 +157,8 @@ def user_detail(user_id):
         order_data.append({
             "order_id": o.id,
             "amount": o.total_amount,
-            "status": o.status,
-            "date": str(o.created_at)
+            "status": o.payment_status,
+            "date": o.created_at.strftime("%Y-%m-%d %H:%M")
         })
 
     license_data = []
@@ -163,11 +173,11 @@ def user_detail(user_id):
             "active": l.active
         })
 
-    return {
+    return jsonify({
         "email": user.email,
         "orders": order_data,
         "licenses": license_data
-    }
+    })
 
 
 # ---------------- APPROVE PAYMENT ----------------
@@ -176,19 +186,18 @@ def user_detail(user_id):
 @jwt_required()
 def approve_payment(order_id):
 
-    if not admin_only():
-        return {"error": "Admin only"}, 403
+    if not get_admin():
+        return jsonify({"error": "Admin only"}), 403
 
     order = Order.query.get(order_id)
 
     if not order:
-        return {"error": "Order not found"}, 404
+        return jsonify({"error": "Order not found"}), 404
 
     order.payment_status = "paid"
     order.status = "paid"
     order.verified_at = datetime.utcnow()
 
-    # 🔑 Generate license keys
     items = OrderItem.query.filter_by(order_id=order.id).all()
 
     for item in items:
@@ -204,7 +213,6 @@ def approve_payment(order_id):
 
     db.session.commit()
 
-    # 🔔 TELEGRAM ALERT
     send_admin_alert(
 f"""
 ✅ Payment Approved
@@ -216,7 +224,7 @@ License Generated
 """
     )
 
-    return {"message": "Payment approved"}
+    return jsonify({"message": "Payment approved"})
 
 
 # ---------------- REJECT PAYMENT ----------------
@@ -225,19 +233,18 @@ License Generated
 @jwt_required()
 def reject_payment(order_id):
 
-    if not admin_only():
-        return {"error": "Admin only"}, 403
+    if not get_admin():
+        return jsonify({"error": "Admin only"}), 403
 
     order = Order.query.get(order_id)
 
     if not order:
-        return {"error": "Order not found"}, 404
+        return jsonify({"error": "Order not found"}), 404
 
     order.payment_status = "rejected"
 
     db.session.commit()
 
-    # 🔔 TELEGRAM ALERT
     send_admin_alert(
 f"""
 ❌ Payment Rejected
@@ -247,4 +254,4 @@ Amount: ${order.total_amount}
 """
     )
 
-    return {"message": "Payment rejected"}
+    return jsonify({"message": "Payment rejected"})

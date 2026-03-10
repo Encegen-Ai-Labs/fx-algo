@@ -21,7 +21,7 @@ from models.site_setting import SiteSetting
 # ------------------ CREATE APP ------------------
 
 # React build will be served from /static
-app = Flask(__name__, static_folder="static", static_url_path="")
+app = Flask(__name__, static_url_path="/uploads", static_folder="uploads")
 app.config.from_object(Config)
 
 # Prevent trailing slash redirect issues
@@ -49,6 +49,7 @@ app.register_blueprint(order_bp, url_prefix="/api/orders")
 app.register_blueprint(payment_bp, url_prefix="/api/payment")
 app.register_blueprint(license_bp, url_prefix="/api/licenses")
 app.register_blueprint(admin_bp, url_prefix="/api/admin")
+
 app.register_blueprint(telegram_bp)
 app.register_blueprint(testimonial_bp)
 app.register_blueprint(settings_bp)

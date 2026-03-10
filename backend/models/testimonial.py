@@ -10,5 +10,6 @@ class Testimonial(db.Model):
     flag = db.Column(db.String(10))
     reward = db.Column(db.String(50))
     role = db.Column(db.String(100))
+    youtube = db.Column(db.String(255))   #
 
     video = db.Column(db.String(255))  # video path
