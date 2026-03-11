@@ -21,8 +21,7 @@ export default function AdminProducts() {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(initialForm);
 
-  const BASE = import.meta.env.VITE_API_URL || "/api"
-
+  const BASE = import.meta.env.VITE_PUBLIC_BASE_URL;
   /* ================= LOAD PRODUCTS ================= */
 
   const loadProducts = async () => {

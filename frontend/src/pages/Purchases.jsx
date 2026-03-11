@@ -226,7 +226,7 @@ export default function Purchases() {
                       </td>
 
                       <td className="p-4">
-                        ₹{order.total}
+                        ${order.total}
                       </td>
 
                       <td className="p-4 text-gray-400">
