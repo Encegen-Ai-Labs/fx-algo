@@ -21,9 +21,9 @@ export default function ProductCard({ product }) {
   };
 
   const imageUrl = product?.image
-  ? `http://127.0.0.1:5000${product.image}`
+  ? `${window.location.origin}${product.image}`
   : "/p1.png";
-  
+
   return (
     <div
       onClick={() => {
