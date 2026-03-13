@@ -95,10 +95,11 @@ function VideoCard({ item }) {
   const videoRef = useRef(null);
   const [muted, setMuted] = useState(true);
 
-  const videoUrl =
-    item.video?.startsWith("http")
-      ? item.video
-      : `${window.location.origin}/${item.video.replace(/\\/g, "/")}`;
+ 
+const videoUrl =
+  item.video?.startsWith("http")
+    ? item.video
+    : `http://127.0.0.1:5000/${item.video.replace(/\\/g, "/")}`;
 
   const toggleSound = () => {
     videoRef.current.muted = !videoRef.current.muted;

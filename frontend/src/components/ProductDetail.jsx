@@ -50,9 +50,10 @@ export default function ProductDetail() {
 
   if (!product) return <div className="text-center py-20">Product not found</div>;
 
-  const imageUrl = product?.image
-    ? `${window.location.origin}${product.image}`
-    : "/p1.png";
+const imageUrl = product?.image
+  ? `http://127.0.0.1:5000${product.image}`
+  : "/p1.png";
+
 
   return (
     <section className="min-h-screen bg-[#0a0614] text-white">
