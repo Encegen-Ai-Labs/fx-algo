@@ -88,13 +88,13 @@ export default function OrderDetails() {
 
             <div className="flex justify-between text-sm">
               <span className="text-gray-400">Price</span>
-              <span>₹{order.price}</span>
+              <span>${order.price}</span>
             </div>
 
             <div className="flex justify-between text-sm">
               <span className="text-gray-400">Total Paid</span>
               <span className="font-semibold">
-                ₹{order.total}
+                ${order.total}
               </span>
             </div>
 

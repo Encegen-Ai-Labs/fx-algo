@@ -144,7 +144,7 @@ f"""
 🛒 <b>New Order Created</b>
 
 <b>Order ID:</b> #{order.id}
-<b>Amount:</b> ₹{total}
+<b>Amount:</b> ${total}
 
 <b>Payment Method:</b> {order.payment_method}
 

@@ -135,7 +135,7 @@ export default function AdminOrders() {
                   </td>
 
                   <td className="p-2 border text-yellow-400">
-                    ₹{o.total}
+                    ${o.total}
                   </td>
 
                   <td className="p-2 border">
@@ -270,7 +270,7 @@ export default function AdminOrders() {
 
               <p><b>Coupon:</b> {selectedOrder.coupon_code || "None"}</p>
 
-              <p><b>Total:</b> ₹{selectedOrder.total}</p>
+              <p><b>Total:</b> ${selectedOrder.total}</p>
 
               <p><b>Payment Method:</b> {selectedOrder.payment_method}</p>
 

@@ -33,27 +33,36 @@ def create_order():
     order_id = data.get("order_id")
     amount = int(data.get("amount"))
 
-    razorpay_order = client.order.create({
-        "amount": amount,
-        "currency": "INR",
-        "payment_capture": 1,
-        "notes": {"order_id": order_id}
-    })
+    if not order_id or not amount:
+        return {"error": "Invalid request"}, 400
 
     order = Order.query.get(order_id)
 
     if not order:
         return {"error": "Order not found"}, 404
 
-    order.razorpay_order_id = razorpay_order["id"]
+    try:
 
-    db.session.commit()
+        razorpay_order = client.order.create({
+            "amount": amount,
+            "currency": "INR",
+            "payment_capture": 1,
+            "notes": {"order_id": order_id}
+        })
 
-    return jsonify({
-        "key": Config.RAZORPAY_KEY_ID,
-        "razorpay_order_id": razorpay_order["id"],
-        "amount": razorpay_order["amount"]
-    })
+        order.razorpay_order_id = razorpay_order["id"]
+        db.session.commit()
+
+        return jsonify({
+            "key": Config.RAZORPAY_KEY_ID,
+            "razorpay_order_id": razorpay_order["id"],
+            "amount": razorpay_order["amount"]
+        })
+
+    except Exception as e:
+        print("Razorpay order error:", e)
+        return {"error": "Failed to create Razorpay order"}, 500
+
 
 # ---------------- VERIFY PAYPAL PAYMENT ----------------
 
@@ -73,7 +82,6 @@ def verify_paypal_payment():
     if not order:
         return {"error": "Order not found"}, 404
 
-    # Update order
     order.status = "paid"
     order.payment_status = "paid"
     order.paypal_order_id = paypal_order_id
@@ -81,8 +89,8 @@ def verify_paypal_payment():
 
     db.session.commit()
 
-    # 🔔 TELEGRAM ALERT
-    send_admin_alert(
+    try:
+        send_admin_alert(
 f"""
 💰 <b>PayPal Payment Received</b>
 
@@ -94,9 +102,13 @@ f"""
 
 Status: <b>PAID</b>
 """
-    )
+        )
+    except Exception as e:
+        print("Telegram error:", e)
 
     return {"message": "PayPal payment verified"}
+
+
 # ---------------- VERIFY RAZORPAY PAYMENT ----------------
 
 @payment_bp.post("/verify")
@@ -104,10 +116,13 @@ def verify_payment():
 
     data = request.json
 
-    order_id = data["order_id"]
-    razorpay_order_id = data["razorpay_order_id"]
-    razorpay_payment_id = data["razorpay_payment_id"]
-    razorpay_signature = data["razorpay_signature"]
+    order_id = data.get("order_id")
+    razorpay_order_id = data.get("razorpay_order_id")
+    razorpay_payment_id = data.get("razorpay_payment_id")
+    razorpay_signature = data.get("razorpay_signature")
+
+    if not all([order_id, razorpay_order_id, razorpay_payment_id, razorpay_signature]):
+        return {"error": "Invalid request"}, 400
 
     generated_signature = hmac.new(
         bytes(Config.RAZORPAY_KEY_SECRET, "utf-8"),
@@ -116,7 +131,7 @@ def verify_payment():
     ).hexdigest()
 
     if generated_signature != razorpay_signature:
-        return {"error": "Invalid payment"}, 400
+        return {"error": "Invalid payment signature"}, 400
 
     order = Order.query.get(order_id)
 
@@ -131,20 +146,22 @@ def verify_payment():
 
     db.session.commit()
 
-    # 🔔 TELEGRAM ALERT
-    send_admin_alert(
+    try:
+        send_admin_alert(
 f"""
 💰 <b>Razorpay Payment Received</b>
 
 <b>Order ID:</b> #{order.id}
-<b>Amount:</b> ₹{order.total_amount}
+<b>Amount:</b> ${order.total_amount}
 
 <b>Payment ID:</b>
 {razorpay_payment_id}
 
 Status: <b>PAID</b>
 """
-    )
+        )
+    except Exception as e:
+        print("Telegram error:", e)
 
     return {"message": "Payment verified"}
 
@@ -167,21 +184,25 @@ def upload_proof(order_id):
     filename = secure_filename(f"order_{order_id}_{file.filename}")
     path = os.path.join(UPLOAD_FOLDER, filename)
 
-    file.save(path)
+    try:
+        file.save(path)
+    except Exception as e:
+        print("File upload error:", e)
+        return {"error": "File upload failed"}, 500
 
     order.payment_proof = path
     order.payment_status = "pending_verification"
 
     db.session.commit()
 
-    # 🔔 TELEGRAM ALERT WITH SCREENSHOT
-    send_admin_photo(
-        path,
+    try:
+        send_admin_photo(
+            path,
 f"""
 📸 <b>Manual Payment Uploaded</b>
 
 <b>Order ID:</b> #{order.id}
-<b>Amount:</b> ₹{order.total_amount}
+<b>Amount:</b> ${order.total_amount}
 
 <b>Customer:</b>
 {order.email}
@@ -194,6 +215,8 @@ buttons=[
 {"text": "Reject ❌", "callback_data": f"reject_{order.id}"}
 ]
 ]
-)
+        )
+    except Exception as e:
+        print("Telegram photo error:", e)
 
     return {"message": "Payment proof uploaded"}

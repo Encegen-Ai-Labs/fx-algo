@@ -14,6 +14,7 @@ from routes.site_settings_routes import settings_bp
 from routes.testimonial_routes import testimonial_bp
 from routes.admin_routes import admin_bp
 from routes.telegram_routes import telegram_bp
+from routes.currency_routes import currency_bp
 
 # IMPORTANT: import model so tables create
 from models.site_setting import SiteSetting
@@ -49,6 +50,7 @@ app.register_blueprint(order_bp, url_prefix="/api/orders")
 app.register_blueprint(payment_bp, url_prefix="/api/payment")
 app.register_blueprint(license_bp, url_prefix="/api/licenses")
 app.register_blueprint(admin_bp, url_prefix="/api/admin")
+app.register_blueprint(currency_bp, url_prefix="/api/currency")
 
 app.register_blueprint(telegram_bp)
 app.register_blueprint(testimonial_bp)

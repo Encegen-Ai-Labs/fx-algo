@@ -14,6 +14,7 @@ export default function Checkout() {
   const { user, isLoggedIn } = useAuth();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [usdToInr, setUsdToInr] = useState(83);
 
   const [errors, setErrors] = useState({});
 
@@ -36,6 +37,14 @@ export default function Checkout() {
       navigate("/login?redirect=/checkout");
     }
   }, [isLoggedIn, navigate]);
+
+  useEffect(() => {
+
+  api.get("/currency/usd-inr")
+    .then(res => setUsdToInr(res.data.rate))
+    .catch(() => setUsdToInr(83));
+
+}, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -76,6 +85,7 @@ export default function Checkout() {
   };
 
   const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+ 
  const handleSubmit = async () => {
 
   if (loading) return;
@@ -88,8 +98,6 @@ export default function Checkout() {
   if (!validate()) return;
 
   setLoading(true);
-
-  const startTime = Date.now(); // ⏱ start timer
 
   try {
 
@@ -104,132 +112,122 @@ export default function Checkout() {
 
     const orderId = orderRes.data.order_id;
 
-// CRYPTO
-if (form.paymentMethod === "crypto") {
-  clearCart();
-  navigate(`/crypto-payment/${orderId}`);
-  return;
-}
+    /* ---------------- CRYPTO ---------------- */
 
-// PAYPAL
-// PAYPAL PAYMENT
-if (form.paymentMethod === "paypal") {
+    if (form.paymentMethod === "crypto") {
+      clearCart();
+      navigate(`/crypto-payment/${orderId}`);
+      return;
+    }
 
-  const productId = cart[0].id; // assuming single product purchase
+    /* ---------------- PAYPAL ---------------- */
 
-  const paypalLinks = {
-    1: "https://www.paypal.com/ncp/payment/LBGPHUSMVS5L6",
-    2: "https://www.paypal.com/ncp/payment/PX3HA9HB3X2DC",
-    3: "https://www.paypal.com/ncp/payment/WDGF52YURHQ9U",
-    4: "https://www.paypal.com/ncp/payment/VV6SNLGVN96X2",
-    5: "https://www.paypal.com/ncp/payment/Z4JQ3RJQ5ZTPN",
-    6: "https://www.paypal.com/ncp/payment/SSKR4A7TNUNQQ",
-    7: "https://www.paypal.com/ncp/payment/R83ZBCP7QJFMJ",
-    8: "https://www.paypal.com/ncp/payment/37ZQTMH8YMCM4"
-  };
+    if (form.paymentMethod === "paypal") {
 
-  const link = paypalLinks[productId];
+      const productId = cart[0].id;
 
-  if (link) {
-    window.location.href = link;
-  } else {
-    alert("PayPal link not available for this product");
-  }
+      const paypalLinks = {
+        1: "https://www.paypal.com/ncp/payment/LBGPHUSMVS5L6",
+        2: "https://www.paypal.com/ncp/payment/PX3HA9HB3X2DC",
+        3: "https://www.paypal.com/ncp/payment/WDGF52YURHQ9U",
+        4: "https://www.paypal.com/ncp/payment/VV6SNLGVN96X2",
+        5: "https://www.paypal.com/ncp/payment/Z4JQ3RJQ5ZTPN",
+        6: "https://www.paypal.com/ncp/payment/SSKR4A7TNUNQQ",
+        7: "https://www.paypal.com/ncp/payment/R83ZBCP7QJFMJ",
+        8: "https://www.paypal.com/ncp/payment/37ZQTMH8YMCM4"
+      };
 
-  return;
-}
-// UPI (manual screenshot)
-if (form.paymentMethod === "upi") {
-  clearCart();
-  navigate(`/manual-payment/${orderId}`);
-  return;
-}
+      const link = paypalLinks[productId];
 
-// BANK TRANSFER PAGE
-if (form.paymentMethod === "banktransfer") {
-  clearCart();
-  navigate(`/bank-transfer/${orderId}`);
-  return;
-}
-// OTHER MANUAL
-if (form.paymentMethod !== "razorpay") {
-  clearCart();
-  navigate(`/manual-payment/${orderId}`);
-  return;
-}
-  const payRes = await api.post("/payment/create-order", {
-      order_id: orderId,
-      amount: Math.round(cartTotal * 100)
-    });
-
-    const payData = payRes.data;
-
-    const options = {
-      key: payData.key,
-      amount: payData.amount,
-      currency: "INR",
-      name: "FX ALGO",
-      description: "Digital Product Purchase",
-      order_id: payData.razorpay_order_id,
-
-      prefill: {
-        name: form.first_name + " " + form.last_name,
-        email: form.email,
-        contact: form.phone,
-      },
-
-      theme: { color: "#facc15" },
-
-      handler: async function (response) {
-
-        try {
-          await api.post("/payment/verify", {
-            order_id: orderId,
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature,
-          });
-
-          clearCart();
-          navigate("/purchases");
-
-        } catch (err) {
-          alert("Verification failed");
-        } finally {
-          const elapsed = Date.now() - startTime;
-          if (elapsed < 3000) {
-            await delay(3000 - elapsed);
-          }
-          setLoading(false);
-        }
-      },
-
-      modal: {
-        ondismiss: async function () {
-          const elapsed = Date.now() - startTime;
-          if (elapsed < 3000) {
-            await delay(3000 - elapsed);
-          }
-          setLoading(false);
-        }
+      if (link) {
+        window.location.href = link;
+      } else {
+        alert("PayPal link not available");
       }
-    };
 
-    const rzp = new window.Razorpay(options);
-    rzp.open();
+      return;
+    }
+
+    /* ---------------- UPI ---------------- */
+
+    if (form.paymentMethod === "upi") {
+      clearCart();
+      navigate(`/manual-payment/${orderId}`);
+      return;
+    }
+
+    /* ---------------- BANK TRANSFER ---------------- */
+
+    if (form.paymentMethod === "banktransfer") {
+      clearCart();
+      navigate(`/bank-transfer/${orderId}`);
+      return;
+    }
+
+    /* ---------------- RAZORPAY ---------------- */
+
+    if (form.paymentMethod === "razorpay") {
+
+      const inrAmount = Math.round(cartTotal * usdToInr);
+
+      const payRes = await api.post("/payment/create-order", {
+        order_id: orderId,
+        amount: inrAmount * 100
+      });
+
+      const payData = payRes.data;
+
+      const options = {
+        key: payData.key,
+        amount: payData.amount,
+        currency: "INR",
+        name: "FX ALGO",
+        description: "Digital Product Purchase",
+        order_id: payData.razorpay_order_id,
+
+        prefill: {
+          name: form.first_name + " " + form.last_name,
+          email: form.email,
+          contact: form.phone,
+        },
+
+        theme: { color: "#facc15" },
+
+        handler: async function (response) {
+
+          try {
+
+            await api.post("/payment/verify", {
+              order_id: orderId,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+
+            clearCart();
+            navigate("/purchases");
+
+          } catch {
+            alert("Payment verification failed");
+          }
+
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    }
 
   } catch (err) {
+
     console.log(err);
     alert("Payment failed");
 
-    const elapsed = Date.now() - startTime;
-    if (elapsed < 3000) {
-      await delay(3000 - elapsed);
-    }
-
-    setLoading(false);
   }
+
+  setLoading(false);
 };
+
   const inputStyle = `
   p-3 rounded-lg bg-[#0e061a]
   border border-white/40
