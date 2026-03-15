@@ -54,8 +54,8 @@ def add_testimonial():
 
     video_path = None
 
-    # If a video file is uploaded
-    if file and allowed_file(file.filename):
+    # Handle uploaded video file
+    if file and file.filename != "" and allowed_file(file.filename):
 
         ext = file.filename.rsplit(".", 1)[1].lower()
         filename = f"{uuid.uuid4()}.{ext}"
@@ -66,7 +66,7 @@ def add_testimonial():
 
         video_path = f"uploads/videos/{filename}"
 
-    # If neither video nor youtube provided → reject
+    # Require either video file or youtube link
     if not video_path and not youtube:
         return jsonify({"error": "Video or YouTube link required"}), 400
 
