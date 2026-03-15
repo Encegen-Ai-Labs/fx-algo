@@ -50,22 +50,25 @@ def get_testimonials():
 def add_testimonial():
 
     file = request.files.get("video")
+    youtube = request.form.get("youtube")
 
-    if not file:
-        return jsonify({"error": "Video required"}), 400
+    video_path = None
 
-    if not allowed_file(file.filename):
-        return jsonify({"error": "Invalid video format"}), 400
+    # If a video file is uploaded
+    if file and allowed_file(file.filename):
 
-    # create unique filename
-    ext = file.filename.rsplit(".", 1)[1].lower()
-    filename = f"{uuid.uuid4()}.{ext}"
+        ext = file.filename.rsplit(".", 1)[1].lower()
+        filename = f"{uuid.uuid4()}.{ext}"
 
-    filepath = os.path.join(UPLOAD_FOLDER, filename)
+        filepath = os.path.join(UPLOAD_FOLDER, filename)
 
-    file.save(filepath)
+        file.save(filepath)
 
-    video_path = f"uploads/videos/{filename}"
+        video_path = f"uploads/videos/{filename}"
+
+    # If neither video nor youtube provided → reject
+    if not video_path and not youtube:
+        return jsonify({"error": "Video or YouTube link required"}), 400
 
     t = Testimonial(
         name=request.form.get("name"),
@@ -73,7 +76,7 @@ def add_testimonial():
         flag=request.form.get("flag"),
         reward=request.form.get("reward"),
         role=request.form.get("role"),
-        youtube=request.form.get("youtube"),
+        youtube=youtube,
         video=video_path
     )
 
