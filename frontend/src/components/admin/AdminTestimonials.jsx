@@ -36,8 +36,8 @@ export default function AdminTestimonials() {
   // SUBMIT
   const submit = async () => {
 
-    if (!video) {
-      alert("Please select a video");
+    if (!video && !form.youtube) {
+      alert("Upload a video OR paste a YouTube link");
       return;
     }
 
@@ -47,7 +47,9 @@ export default function AdminTestimonials() {
       fd.append(key, form[key]);
     });
 
-    fd.append("video", video);
+    if (video) {
+      fd.append("video", video);
+    }
 
     try {
 
@@ -168,11 +170,27 @@ export default function AdminTestimonials() {
               className="bg-[#1a1033] p-4 rounded-xl"
             >
 
-              <video
-                src={t.video}
-                controls
-                className="w-full h-48 object-cover mb-3 rounded"
-              />
+              {t.youtube ? (
+
+                <div
+                  onClick={() => window.open(t.youtube, "_blank")}
+                  className="cursor-pointer"
+                >
+                  <img
+                    src={`https://img.youtube.com/vi/${t.youtube.split("v=")[1]}/maxresdefault.jpg`}
+                    className="w-full h-48 object-cover mb-3 rounded"
+                  />
+                </div>
+
+              ) : (
+
+                <video
+                  src={t.video}
+                  controls
+                  className="w-full h-48 object-cover mb-3 rounded"
+                />
+
+              )}
 
               <div className="flex items-center gap-2 mb-2">
 
