@@ -66,6 +66,11 @@ export default function Navbar() {
           <a href="https://whatsapp.com/channel/0029VbAOm4b0gcfO8W7d7l2J" target="_blank" rel="noopener noreferrer">
             <img src="/whatsapp.png" alt="WhatsApp" className="w-8 h-8 cursor-pointer hover:scale-110 transition" />
           </a>
+
+          <a href="https://t.me/fxalgofficial" target="_blank" rel="noopener noreferrer">
+            <img src="/telegram.png" alt="Telegram" className="w-8 h-8 cursor-pointer hover:scale-110 transition" />
+          </a>
+            
         </div>
 
       </div>
